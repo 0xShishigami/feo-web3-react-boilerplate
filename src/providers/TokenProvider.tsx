@@ -5,28 +5,25 @@ import { TOKEN_LIST } from '~/data/tokens';
 import { useCustomClient } from '~/hooks/useCustomClient';
 import { TokenData } from '~/types';
 
-type ContextType = {
+type TokenBalance = {
   tokenData: TokenData;
   balance: string;
   allowance: string;
-}[];
+};
 
+type TokenMap = {
+  [k: string]: TokenBalance;
+};
+
+type ContextType = TokenBalance[];
 interface TokenProps {
   children: ReactNode;
 }
 
-const tokenListOnlyData = TOKEN_LIST.map((t) => {
-  return {
-    tokenData: t,
-    balance: '',
-    allowance: '',
-  };
-});
-
 export const TokenListContext = createContext({} as ContextType);
 
 export const TokenListProvider = ({ children }: TokenProps) => {
-  const [tokenList, setTokenList] = useState<ContextType>(tokenListOnlyData);
+  const [tokenHashMap, setTokenHashMap] = useState<TokenMap | null>(null);
 
   const { address, chain } = useAccount();
   const customClient = useCustomClient();
@@ -63,21 +60,28 @@ export const TokenListProvider = ({ children }: TokenProps) => {
   useEffect(() => {
     if (!address) return;
 
-    tokenList.forEach(async (t) => {
-      if (t.tokenData.chainId === chain?.id) {
-        const tokenBalance = await loadTokenBalance(t.tokenData);
+    TOKEN_LIST.forEach(async (t) => {
+      if (t.chainId === chain?.id) {
+        const tokenBalance = await loadTokenBalance(t);
 
         if (tokenBalance) {
-          setTokenList([...tokenList, { ...t, balance: tokenBalance[0], allowance: tokenBalance[1] }]);
+          setTokenHashMap({
+            ...tokenHashMap,
+            [t.name]: {
+              tokenData: t,
+              balance: tokenBalance[0],
+              allowance: tokenBalance[1],
+            },
+          });
         }
       }
     });
 
     return () => {
-      setTokenList(tokenListOnlyData);
+      setTokenHashMap(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, chain]);
 
-  return <TokenListContext.Provider value={tokenList}>{children}</TokenListContext.Provider>;
+  return <TokenListContext.Provider value={Object.values(tokenHashMap || {})}>{children}</TokenListContext.Provider>;
 };
