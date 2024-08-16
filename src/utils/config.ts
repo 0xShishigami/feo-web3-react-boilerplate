@@ -8,7 +8,7 @@ import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import { alchemyUrls, supportedChains } from '~/data';
 import { getConfig } from '../config';
 
-const { localhost } = wagmiChains;
+// const { localhost } = wagmiChains;
 const { PROJECT_ID } = getConfig();
 
 const getWallets = () => {
@@ -39,10 +39,12 @@ const transportsObj: Record<[wagmiChains.Chain, ...wagmiChains.Chain[]][number][
   Object.entries(alchemyUrls).map(([chainId, url]) => [chainId, fallback([injectedConnector, http(url), http()])]),
 );
 
-const isDevEnvironment = !!process && process.env.NODE_ENV === 'development';
+// const isDevEnvironment = !!process && process.env.NODE_ENV === 'development';
 
-const transports = isDevEnvironment ? { ...transportsObj, [localhost.id]: injectedConnector } : transportsObj;
-export const availableChains = isDevEnvironment ? [localhost, ...supportedChains] : [...supportedChains];
+// const transports = isDevEnvironment ? { ...transportsObj, [localhost.id]: injectedConnector } : transportsObj;
+const transports = transportsObj;
+// export const availableChains = isDevEnvironment ? [localhost, ...supportedChains] : [...supportedChains];
+export const availableChains = supportedChains;
 
 export const config = createConfig({
   chains: availableChains as [Chain, ...Chain[]],
