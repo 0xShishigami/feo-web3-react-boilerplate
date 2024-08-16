@@ -8,7 +8,7 @@ export const TOKEN_LIST: TokenData[] = [
     name: 'DAI',
   },
   {
-    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    address: '0x1D70D57ccD2798323232B2dD027B3aBcA5C00091',
     chainId: 11155111,
     decimals: 18,
     name: 'DAI',
@@ -20,7 +20,7 @@ export const TOKEN_LIST: TokenData[] = [
     name: 'USDC',
   },
   {
-    address: '0xf08A50178dfcDe18524640EA6618a1f965821715',
+    address: '0xC891481A0AaC630F4D89744ccD2C7D2C4215FD47',
     chainId: 11155111,
     decimals: 6,
     name: 'DAI',
