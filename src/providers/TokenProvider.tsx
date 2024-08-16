@@ -65,14 +65,14 @@ export const TokenListProvider = ({ children }: TokenProps) => {
         const tokenBalance = await loadTokenBalance(t);
 
         if (tokenBalance) {
-          setTokenHashMap({
-            ...tokenHashMap,
-            [t.name]: {
-              tokenData: t,
-              balance: tokenBalance[0],
-              allowance: tokenBalance[1],
-            },
-          });
+          const newMap = tokenHashMap ?? {};
+          newMap[t.name] = {
+            tokenData: t,
+            balance: tokenBalance[0],
+            allowance: tokenBalance[1],
+          };
+
+          setTokenHashMap(newMap);
         }
       }
     });
