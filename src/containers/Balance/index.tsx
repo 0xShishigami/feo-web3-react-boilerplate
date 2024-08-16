@@ -1,5 +1,6 @@
 import { styled } from '@mui/material';
 import { useMemo } from 'react';
+import { formatUnits } from 'viem';
 import { useAccount } from 'wagmi';
 import { useCustomTheme } from '~/hooks';
 import { useTokenList } from '~/hooks/useTokenList';
@@ -16,9 +17,9 @@ export const Balance = () => {
             <p>
               <b>{t.tokenData.name}</b>
               <br />
-              Balance: {t.balance}
+              Balance: {formatUnits(BigInt(t.balance), t.tokenData.decimals)}
               <br />
-              Allowance: {t.allowance}
+              Allowance: {formatUnits(BigInt(t.allowance), t.tokenData.decimals)}
             </p>
           </li>
         ))}
