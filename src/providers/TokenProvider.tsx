@@ -64,9 +64,12 @@ export const TokenListProvider = ({ children }: TokenProps) => {
     if (!address) return;
 
     tokenList.forEach(async (t) => {
-      const tokenBalance = await loadTokenBalance(t.tokenData);
-      if (tokenBalance) {
-        setTokenList([...tokenList, { ...t, balance: tokenBalance[0], allowance: tokenBalance[1] }]);
+      if (t.tokenData.chainId === chain?.id) {
+        const tokenBalance = await loadTokenBalance(t.tokenData);
+
+        if (tokenBalance) {
+          setTokenList([...tokenList, { ...t, balance: tokenBalance[0], allowance: tokenBalance[1] }]);
+        }
       }
     });
 
