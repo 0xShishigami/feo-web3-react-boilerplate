@@ -1,90 +1,80 @@
-import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
-import { Address, erc20Abi } from 'viem';
+import { createContext, ReactNode, useEffect, useState } from 'react';
+import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
-import { useTokenList, useCustomClient } from '~/hooks';
+import { TOKEN_LIST } from '~/data/tokens';
+import { useCustomClient } from '~/hooks/useCustomClient';
 import { TokenData } from '~/types';
 
 type ContextType = {
-  tokenSelected: TokenData | undefined;
+  tokenData: TokenData;
+  balance: string;
   allowance: string;
-
-  selectToken: (token: TokenData) => void;
-  setTargetAddress: (token: Address | undefined) => void;
-};
+}[];
 
 interface TokenProps {
   children: ReactNode;
 }
 
-export const TokenContext = createContext({} as ContextType);
+const tokenListOnlyData = TOKEN_LIST.map((t) => {
+  return {
+    tokenData: t,
+    balance: '',
+    allowance: '',
+  };
+});
 
-export const TokenProvider = ({ children }: TokenProps) => {
-  const [defaultToken] = useTokenList(); // firt token from TokenList as default
+export const TokenListContext = createContext({} as ContextType);
 
-  const [tokenSelected, selectToken] = useState<ContextType['tokenSelected']>();
-  const [allowance, setAllowance] = useState<ContextType['allowance']>('0');
+export const TokenListProvider = ({ children }: TokenProps) => {
+  const [tokenList, setTokenList] = useState<ContextType>(tokenListOnlyData);
 
-  const [targetAddress, setTargetAddress] = useState<Address>();
-  const { address, chainId } = useAccount();
-
+  const { address, chain } = useAccount();
   const customClient = useCustomClient();
 
-  const loadAllowance = useCallback(
-    async (token: TokenData, _targetAddress?: Address) => {
-      setAllowance('0'); // reset allowance
+  const loadTokenBalance = async (token: TokenData) => {
+    try {
+      if (!address) throw new Error('Address is required');
+      const [_balance, _allowance] = await customClient.publicClient.multicall({
+        contracts: [
+          {
+            address: token.address,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [address],
+          },
+          {
+            address: token.address,
+            abi: erc20Abi,
+            functionName: 'allowance',
+            args: [address, token.address],
+          },
+        ],
+      });
 
-      if (!address || !chainId || (!targetAddress && !_targetAddress)) return;
+      const balance = _balance.result?.toString() ?? '0';
+      const allowance = _allowance.result?.toString() ?? '0';
 
-      try {
-        const result = await customClient.publicClient.readContract({
-          address: token.address,
-          abi: erc20Abi,
-          functionName: 'allowance',
-          args: [address, targetAddress ?? (_targetAddress || '0x')],
-        });
-
-        setAllowance(result.toString());
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [address, targetAddress, chainId, customClient],
-  );
-
-  const handleSelectToken = (token: TokenData) => {
-    if (token === tokenSelected) return;
-
-    selectToken(token);
-    loadAllowance(token);
+      return [balance, allowance];
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleSetTargetAddress = useCallback(
-    (newTargetAddress: Address | undefined) => {
-      if (newTargetAddress === targetAddress) return;
-      // set or reset target address
-      setTargetAddress(newTargetAddress ?? undefined);
-
-      if (newTargetAddress && tokenSelected) {
-        loadAllowance(tokenSelected, newTargetAddress);
-      }
-    },
-    [loadAllowance, targetAddress, tokenSelected],
-  );
-
   useEffect(() => {
-    defaultToken && selectToken(defaultToken.tokenData);
-  }, [defaultToken]);
+    if (!address) return;
 
-  return (
-    <TokenContext.Provider
-      value={{
-        tokenSelected,
-        allowance,
-        selectToken: handleSelectToken,
-        setTargetAddress: handleSetTargetAddress,
-      }}
-    >
-      {children}
-    </TokenContext.Provider>
-  );
+    tokenList.forEach(async (t) => {
+      const tokenBalance = await loadTokenBalance(t.tokenData);
+      if (tokenBalance) {
+        setTokenList([...tokenList, { ...t, balance: tokenBalance[0], allowance: tokenBalance[1] }]);
+      }
+    });
+
+    return () => {
+      setTokenList(tokenListOnlyData);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, chain]);
+
+  return <TokenListContext.Provider value={tokenList}>{children}</TokenListContext.Provider>;
 };

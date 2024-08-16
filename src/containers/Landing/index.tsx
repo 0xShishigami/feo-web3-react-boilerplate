@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles';
-import { Balance, Allowance } from '~/containers';
+import { Balance } from '~/containers/Balance';
 
 import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
 
@@ -7,12 +7,11 @@ export const Landing = () => {
   return (
     <Container>
       <Balance />
-      <Allowance />
     </Container>
   );
 };
 
-const Container = styled('main')({
+const Container = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: '2rem',

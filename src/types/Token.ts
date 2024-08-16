@@ -1,7 +1,5 @@
-import { Address } from 'viem';
-
 export type TokenData = {
-  address: Address;
+  address: `0x${string}`;
   chainId: number;
   decimals: number;
   name: string;

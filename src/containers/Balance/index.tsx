@@ -1,28 +1,37 @@
-import { Box, styled, Typography } from '@mui/material';
-import { formatUnits } from 'viem';
-import { useCustomTheme, useTokenList } from '~/hooks';
+import { styled } from '@mui/material';
+import { useMemo } from 'react';
+import { useAccount } from 'wagmi';
+import { useCustomTheme } from '~/hooks';
+import { useTokenList } from '~/hooks/useTokenList';
 
 export const Balance = () => {
+  const { chain } = useAccount();
   const tokenList = useTokenList();
+  const tokenListByChain = useMemo(() => tokenList.filter((t) => t.tokenData.chainId === chain?.id), [chain]);
   return (
     <Card>
-      {tokenList.map((t) => (
-        <Box key={`${t.tokenData.chainId}-${t.tokenData.address}`} textAlign='center'>
-          <Typography variant='h6'>{t.tokenData.name}</Typography>
-          <Typography variant='body1'>Balance: {formatUnits(BigInt(t.balance), t.tokenData.decimals)}</Typography>
-        </Box>
-      ))}
+      <ul>
+        {tokenListByChain.map((t) => (
+          <li key={`${t.tokenData.chainId}-${t.tokenData.address}`}>
+            <p>
+              <b>{t.tokenData.name}</b>
+              <br />
+              Balance: {t.balance}
+              <br />
+              Allowance: {t.allowance}
+            </p>
+          </li>
+        ))}
+      </ul>
     </Card>
   );
 };
 
-const Card = styled('div')(() => {
+const Card = styled('main')(() => {
   const { currentTheme } = useCustomTheme();
   return {
     boxShadow: currentTheme.cardBoxShadow,
     padding: '2rem',
     borderRadius: currentTheme.borderRadius,
-    display: 'flex',
-    gap: '2rem',
   };
 });

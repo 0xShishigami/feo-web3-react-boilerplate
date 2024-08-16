@@ -42,10 +42,10 @@ const transportsObj: Record<[wagmiChains.Chain, ...wagmiChains.Chain[]][number][
 const isDevEnvironment = !!process && process.env.NODE_ENV === 'development';
 
 const transports = isDevEnvironment ? { ...transportsObj, [localhost.id]: injectedConnector } : transportsObj;
-const chains = isDevEnvironment ? [localhost, ...supportedChains] : [...supportedChains];
+export const availableChains = isDevEnvironment ? [localhost, ...supportedChains] : [...supportedChains];
 
 export const config = createConfig({
-  chains: chains as [Chain, ...Chain[]],
+  chains: availableChains as [Chain, ...Chain[]],
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,
