@@ -23,6 +23,6 @@ export const TOKEN_LIST: TokenData[] = [
     address: '0xC891481A0AaC630F4D89744ccD2C7D2C4215FD47',
     chainId: 11155111,
     decimals: 6,
-    name: 'DAI',
+    name: 'USDC',
   },
 ];
