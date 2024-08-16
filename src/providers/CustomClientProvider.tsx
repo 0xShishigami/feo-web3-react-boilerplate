@@ -1,7 +1,6 @@
 import { createContext, ReactNode, useCallback, useMemo } from 'react';
 import { createPublicClient, createWalletClient, custom, fallback, http, PublicClient, WalletClient } from 'viem';
-import { useAccount } from 'wagmi';
-import { sepolia } from 'viem/chains';
+import { useAccount, useConfig } from 'wagmi';
 import { alchemyUrls } from '~/data';
 
 type ContextType = {
@@ -17,6 +16,7 @@ export const CustomClientContext = createContext({} as ContextType);
 
 export const CustomClientProvider = ({ children }: CustomClientProps) => {
   const { address, chain } = useAccount();
+  const { chains } = useConfig();
 
   const isInjected = typeof window !== 'undefined' && window.ethereum;
 
@@ -40,14 +40,15 @@ export const CustomClientProvider = ({ children }: CustomClientProps) => {
 
   const publicClient = useMemo(() => {
     return createPublicClient({
-      chain: chain ?? sepolia,
-      transport: getPublicTransport(chain?.id ?? sepolia.id),
+      chain: chain,
+      transport: getPublicTransport(chain?.id ?? chains[0].id),
       batch: {
         multicall: {
           wait: 40,
         },
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chain, getPublicTransport]);
 
   return (
