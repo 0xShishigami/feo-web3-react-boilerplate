@@ -1,10 +1,22 @@
 import { createContext, ReactNode, useCallback, useMemo } from 'react';
-import { createPublicClient, createWalletClient, custom, fallback, http, PublicClient, WalletClient } from 'viem';
-import { useAccount, useConfig } from 'wagmi';
+import {
+  createPublicClient,
+  createTestClient,
+  createWalletClient,
+  custom,
+  fallback,
+  http,
+  publicActions,
+  PublicClient,
+  TestClient,
+  WalletClient,
+} from 'viem';
+import { useAccount } from 'wagmi';
+import { hardhat, sepolia } from 'viem/chains';
 import { alchemyUrls } from '~/data';
 
 type ContextType = {
-  publicClient: PublicClient;
+  publicClient: PublicClient | TestClient;
   walletClient: WalletClient | undefined;
 };
 
@@ -16,9 +28,9 @@ export const CustomClientContext = createContext({} as ContextType);
 
 export const CustomClientProvider = ({ children }: CustomClientProps) => {
   const { address, chain } = useAccount();
-  const { chains } = useConfig();
 
   const isInjected = typeof window !== 'undefined' && window.ethereum;
+  const isDevEnvironment = !!process && process.env.NODE_ENV === 'development';
 
   const getPublicTransport = useCallback(
     (chainId: number) =>
@@ -39,9 +51,17 @@ export const CustomClientProvider = ({ children }: CustomClientProps) => {
   }, [address, chain, isInjected]);
 
   const publicClient = useMemo(() => {
+    if (isDevEnvironment) {
+      return createTestClient({
+        chain: hardhat,
+        mode: 'hardhat',
+        transport: http(),
+      }).extend(publicActions);
+    }
+
     return createPublicClient({
-      chain: chain,
-      transport: getPublicTransport(chain?.id ?? chains[0].id),
+      chain: chain ?? sepolia,
+      transport: getPublicTransport(chain?.id ?? sepolia.id),
       batch: {
         multicall: {
           wait: 40,
