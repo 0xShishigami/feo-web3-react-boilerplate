@@ -5,7 +5,6 @@ import { sepolia } from 'viem/chains';
 import { alchemyUrls } from '~/data';
 
 type ContextType = {
-  // publicClient: PublicClient | TestClient;
   publicClient: PublicClient;
   walletClient: WalletClient | undefined;
 };
@@ -20,7 +19,6 @@ export const CustomClientProvider = ({ children }: CustomClientProps) => {
   const { address, chain } = useAccount();
 
   const isInjected = typeof window !== 'undefined' && window.ethereum;
-  // const isDevEnvironment = !!process && process.env.NODE_ENV === 'development';
 
   const getPublicTransport = useCallback(
     (chainId: number) =>
@@ -41,14 +39,6 @@ export const CustomClientProvider = ({ children }: CustomClientProps) => {
   }, [address, chain, isInjected]);
 
   const publicClient = useMemo(() => {
-    // if (isDevEnvironment) {
-    //   return createTestClient({
-    //     chain: hardhat,
-    //     mode: 'hardhat',
-    //     transport: http(),
-    //   }).extend(publicActions);
-    // }
-
     return createPublicClient({
       chain: chain ?? sepolia,
       transport: getPublicTransport(chain?.id ?? sepolia.id),
@@ -58,7 +48,6 @@ export const CustomClientProvider = ({ children }: CustomClientProps) => {
         },
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chain, getPublicTransport]);
 
   return (
