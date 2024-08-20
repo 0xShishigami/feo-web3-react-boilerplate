@@ -4,7 +4,7 @@ import { StateProvider } from './StateProvider';
 import { ThemeProvider } from './ThemeProvider';
 import { WalletProvider } from './WalletProvider';
 import { CustomClientProvider } from './CustomClientProvider';
-import { TokenListProvider } from '~/providers/TokenProvider';
+import { TokenListProvider } from '~/providers/TokenListProvider';
 
 type Props = {
   children: ReactNode;

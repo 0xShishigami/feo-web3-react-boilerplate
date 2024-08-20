@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { TokenListContext } from '~/providers/TokenProvider';
+import { TokenListContext } from '~/providers/TokenListProvider';
 
 export const useTokenList = () => {
   const context = useContext(TokenListContext);
