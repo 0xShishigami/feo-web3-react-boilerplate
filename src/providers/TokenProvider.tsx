@@ -44,7 +44,7 @@ export const TokenListProvider = ({ children }: TokenProps) => {
               address: token.address,
               abi: erc20Abi,
               functionName: 'allowance',
-              args: [address, token.address],
+              args: [address, address],
             },
           ],
         });
