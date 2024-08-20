@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
 import { TOKEN_LIST } from '~/data/tokens';
@@ -28,34 +28,37 @@ export const TokenListProvider = ({ children }: TokenProps) => {
   const { address, chain } = useAccount();
   const customClient = useCustomClient();
 
-  const loadTokenBalance = async (token: TokenData) => {
-    try {
-      if (!address) throw new Error('Address is required');
-      const [_balance, _allowance] = await customClient.publicClient.multicall({
-        contracts: [
-          {
-            address: token.address,
-            abi: erc20Abi,
-            functionName: 'balanceOf',
-            args: [address],
-          },
-          {
-            address: token.address,
-            abi: erc20Abi,
-            functionName: 'allowance',
-            args: [address, token.address],
-          },
-        ],
-      });
+  const loadTokenBalance = useCallback(
+    async (token: TokenData) => {
+      try {
+        if (!address) throw new Error('Address is required');
+        const [_balance, _allowance] = await customClient.publicClient.multicall({
+          contracts: [
+            {
+              address: token.address,
+              abi: erc20Abi,
+              functionName: 'balanceOf',
+              args: [address],
+            },
+            {
+              address: token.address,
+              abi: erc20Abi,
+              functionName: 'allowance',
+              args: [address, token.address],
+            },
+          ],
+        });
 
-      const balance = _balance.result?.toString() ?? '0';
-      const allowance = _allowance.result?.toString() ?? '0';
+        const balance = _balance.result?.toString() ?? '0';
+        const allowance = _allowance.result?.toString() ?? '0';
 
-      return [balance, allowance];
-    } catch (error) {
-      console.error(error);
-    }
-  };
+        return [balance, allowance];
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [address, customClient],
+  );
 
   useEffect(() => {
     if (!address) return;
@@ -65,14 +68,15 @@ export const TokenListProvider = ({ children }: TokenProps) => {
         const tokenBalance = await loadTokenBalance(t);
 
         if (tokenBalance) {
-          const newMap = tokenHashMap ?? {};
-          newMap[t.name] = {
-            tokenData: t,
-            balance: tokenBalance[0],
-            allowance: tokenBalance[1],
-          };
-
-          setTokenHashMap(newMap);
+          setTokenHashMap((prev) => {
+            const newMap = prev ?? {};
+            newMap[t.name] = {
+              tokenData: t,
+              balance: tokenBalance[0],
+              allowance: tokenBalance[1],
+            };
+            return newMap;
+          });
         }
       }
     });
@@ -80,8 +84,7 @@ export const TokenListProvider = ({ children }: TokenProps) => {
     return () => {
       setTokenHashMap(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, chain]);
+  }, [address, chain, loadTokenBalance]);
 
   return <TokenListContext.Provider value={Object.values(tokenHashMap || {})}>{children}</TokenListContext.Provider>;
 };
