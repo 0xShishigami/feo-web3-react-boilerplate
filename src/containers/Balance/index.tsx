@@ -1,7 +1,6 @@
 import { styled } from '@mui/material';
 import { formatUnits } from 'viem';
-import { useCustomTheme } from '~/hooks';
-import { useTokenList } from '~/hooks/useTokenList';
+import { useCustomTheme, useTokenList } from '~/hooks';
 
 export const Balance = () => {
   const tokenList = useTokenList();
