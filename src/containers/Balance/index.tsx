@@ -13,8 +13,6 @@ export const Balance = () => {
               <b>{t.tokenData.name}</b>
               <br />
               Balance: {formatUnits(BigInt(t.balance), t.tokenData.decimals)}
-              <br />
-              Allowance: {formatUnits(BigInt(t.allowance), t.tokenData.decimals)}
             </p>
           </li>
         ))}
