@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles';
-import { Balance } from '~/containers/Balance';
+import { Balance } from '~/containers';
 
 import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
 
