@@ -4,7 +4,7 @@ import { formatUnits, isAddress } from 'viem';
 import { useCustomTheme, useTokenList } from '~/hooks';
 import { useToken } from '~/hooks/useToken';
 
-export const Allowance = () => {
+export const Allownace = () => {
   const tokenList = useTokenList();
   const { allowance, tokenSelected, selectToken, setTargetAddress } = useToken();
 
