@@ -1,18 +1,21 @@
 import { styled } from '@mui/material/styles';
+import { Balance, Allowance } from '~/containers';
 
 import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
 
 export const Landing = () => {
   return (
-    <LandingContainer>
-      <h1 data-testid='boilerplate-title'>Web3 React Boilerplate</h1>
-    </LandingContainer>
+    <Container>
+      <Balance />
+      <Allowance />
+    </Container>
   );
 };
 
-const LandingContainer = styled('div')({
+const Container = styled('main')({
   display: 'flex',
   flexDirection: 'column',
+  gap: '2rem',
   height: `calc(100vh - ${SURROUND_HEIGHT}rem - ${DISCLAIMER_HEIGHT}rem)`,
   padding: '0 8rem',
   alignItems: 'center',

@@ -9,9 +9,10 @@ export const darkTheme: Theme = {
   backgroundSecondary: '#161616',
   titleFontFamily: 'Open Sans',
   textFontFamily: 'Open Sans',
-  borderRadius: '0.8rem',
+  borderRadius: '2rem',
   secondaryBorderRadius: '0.4rem',
   border: '0.1rem solid rgba(153, 164, 184, 0.1)',
+  cardBoxShadow: '0px 0px 64px 0px rgba(255,255,255, 0.2), 0px 0px 14px 0px rgba(255,255,255, 0.06)',
 };
 
 export const lightTheme: Theme = {
@@ -23,7 +24,8 @@ export const lightTheme: Theme = {
   backgroundSecondary: '#f8f8f8',
   titleFontFamily: 'Open Sans',
   textFontFamily: 'Open Sans',
-  borderRadius: '0.8rem',
+  borderRadius: '2rem',
   secondaryBorderRadius: '0.4rem',
   border: '0.1rem solid rgba(183, 183, 183, 0.3)',
+  cardBoxShadow: '0px 0px 64px 0px rgba(255,255,255, 0.2), 0px 0px 14px 0px rgba(255,255,255, 0.06)',
 };

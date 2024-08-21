@@ -12,6 +12,7 @@ export interface Theme {
   borderRadius: string;
   secondaryBorderRadius: string;
   border: string;
+  cardBoxShadow: string;
 }
 
 export interface PropTheme {
