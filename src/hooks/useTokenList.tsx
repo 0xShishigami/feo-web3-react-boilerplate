@@ -5,7 +5,7 @@ export const useTokenList = () => {
   const context = useContext(TokenListContext);
 
   if (context === undefined) {
-    throw new Error('useTokenList must be used within a StateProvider');
+    throw new Error('useTokenList must be used within a TokenListProvider');
   }
 
   return context;
