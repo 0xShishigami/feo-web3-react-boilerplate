@@ -49,7 +49,7 @@ export const TokenListProvider = ({ children }: TokenProps) => {
           const balance = current.result?.toString() ?? '0';
           const newVal = {
             tokenData: tokens[idx],
-            balance: balance,
+            balance,
           };
           return [...acc, newVal];
         }, []);
