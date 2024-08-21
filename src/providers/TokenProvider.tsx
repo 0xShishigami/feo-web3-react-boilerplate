@@ -1,8 +1,7 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
 import { Address, erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
-import { useTokenList } from '~/hooks';
-import { useCustomClient } from '~/hooks/useCustomClient';
+import { useTokenList, useCustomClient } from '~/hooks';
 import { TokenData } from '~/types';
 
 type ContextType = {
