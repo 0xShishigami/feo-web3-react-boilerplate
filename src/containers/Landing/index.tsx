@@ -13,7 +13,7 @@ export const Landing = () => {
   );
 };
 
-const Container = styled('div')({
+const Container = styled('main')({
   display: 'flex',
   flexDirection: 'column',
   gap: '2rem',
