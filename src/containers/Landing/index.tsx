@@ -15,7 +15,7 @@ export const Landing = () => {
 const Container = styled('main')({
   display: 'flex',
   flexDirection: 'column',
-  gap: '2rem',
+  gap: '1rem',
   height: `calc(100vh - ${SURROUND_HEIGHT}rem - ${DISCLAIMER_HEIGHT}rem)`,
   padding: '0 8rem',
   alignItems: 'center',

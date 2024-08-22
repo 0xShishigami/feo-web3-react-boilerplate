@@ -1,6 +1,7 @@
 import { Box, styled, Typography } from '@mui/material';
 import { formatUnits } from 'viem';
 import { useCustomTheme, useTokenList } from '~/hooks';
+import { FORM_MIN_WIDTH } from '~/utils';
 
 export const Balance = () => {
   const tokenList = useTokenList();
@@ -19,10 +20,12 @@ export const Balance = () => {
 const Card = styled('div')(() => {
   const { currentTheme } = useCustomTheme();
   return {
+    minWidth: `${FORM_MIN_WIDTH}rem`,
     boxShadow: currentTheme.cardBoxShadow,
-    padding: '2rem',
+    padding: '2rem 4rem',
     borderRadius: currentTheme.borderRadius,
     display: 'flex',
+    justifyContent: 'space-around',
     gap: '2rem',
   };
 });

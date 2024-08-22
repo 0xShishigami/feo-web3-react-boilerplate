@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { formatUnits, isAddress, parseUnits } from 'viem';
 import { useCustomTheme, useTokenList } from '~/hooks';
 import { useToken } from '~/hooks/useToken';
+import { FORM_MIN_WIDTH } from '~/utils';
 
 export const Allowance = () => {
   const tokenList = useTokenList();
@@ -36,7 +37,10 @@ export const Allowance = () => {
 
   return (
     <Card>
-      <FormControl fullWidth>
+      <Typography variant='h5' textAlign='center' mb={2}>
+        Allowance
+      </Typography>
+      <FormControl fullWidth margin='dense'>
         <InputLabel id='select-token'>Select Token</InputLabel>
         <Select
           labelId='select-token'
@@ -44,6 +48,7 @@ export const Allowance = () => {
           value={tokenSelected?.name || ''}
           label='Select Token'
           onChange={(e) => handleChangeToken(e.target.value)}
+          size='small'
         >
           {tokenList.map((t) => (
             <MenuItem key={`${t.tokenData.chainId}-${t.tokenData.address}`} value={t.tokenData.name}>
@@ -53,29 +58,43 @@ export const Allowance = () => {
         </Select>
       </FormControl>
 
-      <TextField
-        label='Target Address'
-        value={inputAddress}
-        onChange={(e) => handleChangeInputAddress(e.target.value)}
-        error={!!inputAddress && !isValidAddress}
-      />
+      <FormControl fullWidth margin='dense'>
+        <TextField
+          label='Target Address'
+          value={inputAddress}
+          onChange={(e) => handleChangeInputAddress(e.target.value)}
+          error={!!inputAddress && !isValidAddress}
+          size='small'
+        />
+      </FormControl>
 
       <Typography variant='overline' display='block' mt={1}>
         Current Allowance: {formatUnits(BigInt(allowance), tokenSelected?.decimals ?? 18)}
       </Typography>
 
-      <TextField label='Amount' value={amount} onChange={(e) => setAmount(e.target.value)} type='number' />
+      <FormControl fullWidth margin='dense'>
+        <TextField
+          label='Set allowance'
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          type='number'
+          size='small'
+        />
+      </FormControl>
 
-      <Button onClick={handleApprove} disabled={!amount} variant='outlined'>
-        Approve
-      </Button>
+      <FormControl fullWidth margin='dense'>
+        <Button onClick={handleApprove} disabled={!amount} variant='outlined'>
+          Approve
+        </Button>
+      </FormControl>
     </Card>
   );
 };
 
-const Card = styled('main')(() => {
+const Card = styled('div')(() => {
   const { currentTheme } = useCustomTheme();
   return {
+    minWidth: `${FORM_MIN_WIDTH}rem`,
     boxShadow: currentTheme.cardBoxShadow,
     padding: '2rem',
     borderRadius: currentTheme.borderRadius,
