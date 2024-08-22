@@ -10,6 +10,8 @@ type ContextType = {
 
   selectToken: (token: TokenData) => void;
   setTargetAddress: (token: Address | undefined) => void;
+
+  approve: (amount: string) => Promise<string | undefined>;
 };
 
 interface TokenProps {
@@ -25,7 +27,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
   const [allowance, setAllowance] = useState<ContextType['allowance']>('0');
 
   const [targetAddress, setTargetAddress] = useState<Address>();
-  const { address, chainId } = useAccount();
+  const { address, chain, chainId } = useAccount();
 
   const customClient = useCustomClient();
 
@@ -71,6 +73,32 @@ export const TokenProvider = ({ children }: TokenProps) => {
     [loadAllowance, targetAddress, tokenSelected],
   );
 
+  const approve = async (amount: string) => {
+    if (!address || !chainId || !tokenSelected || !targetAddress) return;
+
+    try {
+      const { request } = await customClient.publicClient.simulateContract({
+        account: address,
+        address: tokenSelected.address,
+        abi: erc20Abi,
+        functionName: 'approve',
+        chain: chain,
+        args: [targetAddress, BigInt(amount)],
+      });
+
+      const hash = await customClient.walletClient?.writeContract(request);
+
+      if (!hash) throw new Error('Approve transaction failed');
+
+      await customClient.publicClient.waitForTransactionReceipt({ hash });
+      setAllowance(amount);
+
+      return hash.toString();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     defaultToken && selectToken(defaultToken.tokenData);
   }, [defaultToken]);
@@ -82,6 +110,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
         allowance,
         selectToken: handleSelectToken,
         setTargetAddress: handleSetTargetAddress,
+        approve,
       }}
     >
       {children}
