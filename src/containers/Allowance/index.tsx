@@ -30,7 +30,7 @@ export const Allowance = () => {
 
   const handleApprove = () => {
     const parsedAmount = parseUnits(amount, tokenSelected?.decimals || 18);
-    approve(parsedAmount.toString()).then((hash) => alert('success: ' + hash));
+    approve(parsedAmount.toString()).then((hash) => !!hash && alert('Approved! Hash: ' + hash));
   };
 
   const isValidAddress = useMemo(() => isAddress(inputAddress), [inputAddress]);
@@ -83,7 +83,7 @@ export const Allowance = () => {
       </FormControl>
 
       <FormControl fullWidth margin='dense'>
-        <Button onClick={handleApprove} disabled={!amount} variant='outlined'>
+        <Button onClick={handleApprove} disabled={!amount || !inputAddress} variant='outlined'>
           Approve
         </Button>
       </FormControl>
