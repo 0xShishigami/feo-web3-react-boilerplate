@@ -1,8 +1,9 @@
-import { Button, FormControl, InputLabel, MenuItem, Select, styled, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { formatUnits, isAddress, parseUnits } from 'viem';
-import { useCustomTheme, useTokenList } from '~/hooks';
-import { useToken } from '~/hooks/useToken';
+import { useAccount } from 'wagmi';
+import { Button, FormControl, InputLabel, MenuItem, Select, styled, TextField, Typography } from '@mui/material';
+
+import { useCustomTheme, useSetNotification, useToken, useTokenList } from '~/hooks';
 import { FORM_MIN_WIDTH } from '~/utils';
 
 export const Allowance = () => {
@@ -11,6 +12,9 @@ export const Allowance = () => {
 
   const [inputAddress, setInputAddress] = useState('');
   const [amount, setAmount] = useState('');
+
+  const { chain } = useAccount();
+  const setNotification = useSetNotification();
 
   const handleChangeToken = (tokenName: string) => {
     const tokenToBeSelected = tokenList.find((t) => t.tokenData.name === tokenName);
@@ -30,7 +34,20 @@ export const Allowance = () => {
 
   const handleApprove = () => {
     const parsedAmount = parseUnits(amount, tokenSelected?.decimals || 18);
-    approve(parsedAmount.toString()).then((hash) => !!hash && alert('Approved! Hash: ' + hash));
+
+    approve(parsedAmount.toString()).then(
+      (hash) =>
+        !!hash &&
+        setNotification({
+          type: 'success',
+          message: `Approved!`,
+          link: {
+            href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
+            text: 'See transaction',
+          },
+          timeout: 5000,
+        }),
+    );
   };
 
   const isValidAddress = useMemo(() => isAddress(inputAddress), [inputAddress]);
