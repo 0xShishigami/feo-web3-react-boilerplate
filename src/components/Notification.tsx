@@ -1,11 +1,12 @@
 import { useCallback, useEffect } from 'react';
-import { Alert, Snackbar, styled } from '@mui/material';
+import { Alert, Link, Snackbar, styled } from '@mui/material';
+
 import { NotificationActionTypes } from '~/providers/NotificationProvider/actions';
 import { useCustomTheme, useNotificationContext } from '~/hooks';
 
 export default function Notification() {
   const { state, dispatchNotification } = useNotificationContext();
-  const { type, message, visible, timeout } = state;
+  const { type, message, visible, timeout, link } = state;
 
   const clearNotification = useCallback(() => {
     dispatchNotification({ type: NotificationActionTypes.CLEAR_NOTIFICATION });
@@ -34,6 +35,14 @@ export default function Notification() {
     >
       <StyledAlert onClose={clearNotification} severity={severity} variant='filled' sx={{ width: '100%' }}>
         {message}
+        {link && (
+          <>
+            <br />
+            <Link href={link.href} target='_blank' rel='noopener noreferrer' underline='hover'>
+              {link.text}
+            </Link>
+          </>
+        )}
       </StyledAlert>
     </Snackbar>
   );

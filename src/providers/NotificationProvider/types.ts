@@ -3,9 +3,13 @@ export type TNotificationState = {
   message: string;
   visible: boolean;
   timeout: number;
+  link?: {
+    href: string;
+    text: string;
+  };
 };
 
-export type TNotificationPayload = Pick<TNotificationState, 'type' | 'message' | 'timeout'>;
+export type TNotificationPayload = Pick<TNotificationState, 'type' | 'message' | 'timeout' | 'link'>;
 
 export type TNotificationAction =
   | {
