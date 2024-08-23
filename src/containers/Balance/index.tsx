@@ -1,5 +1,6 @@
-import { Box, styled, Typography } from '@mui/material';
 import { formatUnits } from 'viem';
+import { Box, styled, Typography } from '@mui/material';
+
 import { useCustomTheme, useTokenList } from '~/hooks';
 import { FORM_MIN_WIDTH } from '~/utils';
 
