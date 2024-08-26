@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react';
 
-import { StateProvider } from './StateProvider';
 import { ThemeProvider } from './ThemeProvider';
 import { WalletProvider } from './WalletProvider';
 import { CustomClientProvider } from './CustomClientProvider';
-import { TokenListProvider } from '~/providers/TokenListProvider';
-import { TokenProvider } from '~/providers/TokenProvider';
+import { TokenListProvider } from './TokenListProvider';
+import { TokenProvider } from './TokenProvider';
+import { TxStatusProvider } from './TxStatusProvider';
+import { NotificationProvider } from './NotificationProvider';
+
+export * from './NotificationProvider';
 
 type Props = {
   children: ReactNode;
@@ -14,15 +17,17 @@ type Props = {
 export const Providers = ({ children }: Props) => {
   return (
     <ThemeProvider>
-      <StateProvider>
+      <NotificationProvider>
         <WalletProvider>
           <CustomClientProvider>
-            <TokenListProvider>
-              <TokenProvider>{children}</TokenProvider>
-            </TokenListProvider>
+            <TxStatusProvider>
+              <TokenListProvider>
+                <TokenProvider>{children}</TokenProvider>
+              </TokenListProvider>
+            </TxStatusProvider>
           </CustomClientProvider>
         </WalletProvider>
-      </StateProvider>
+      </NotificationProvider>
     </ThemeProvider>
   );
 };

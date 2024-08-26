@@ -1,4 +1,5 @@
 import { styled } from '@mui/material/styles';
+import { Notification } from '~/components';
 import { Balance, Allowance } from '~/containers';
 
 import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
@@ -6,6 +7,7 @@ import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
 export const Landing = () => {
   return (
     <Container>
+      <Notification />
       <Balance />
       <Allowance />
     </Container>
@@ -13,9 +15,10 @@ export const Landing = () => {
 };
 
 const Container = styled('main')({
+  position: 'relative',
   display: 'flex',
   flexDirection: 'column',
-  gap: '2rem',
+  gap: '1rem',
   height: `calc(100vh - ${SURROUND_HEIGHT}rem - ${DISCLAIMER_HEIGHT}rem)`,
   padding: '0 8rem',
   alignItems: 'center',

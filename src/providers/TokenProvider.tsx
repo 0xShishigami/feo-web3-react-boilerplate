@@ -1,7 +1,8 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
-import { Address, erc20Abi } from 'viem';
+import { Address, erc20Abi, GetBlockNumberErrorType } from 'viem';
 import { useAccount } from 'wagmi';
-import { useTokenList, useCustomClient } from '~/hooks';
+
+import { useCustomClient, useTokenList, useSetNotification } from '~/hooks';
 import { TokenData } from '~/types';
 
 type ContextType = {
@@ -10,6 +11,8 @@ type ContextType = {
 
   selectToken: (token: TokenData) => void;
   setTargetAddress: (token: Address | undefined) => void;
+
+  approve: (amount: string) => Promise<string | undefined>;
 };
 
 interface TokenProps {
@@ -25,9 +28,10 @@ export const TokenProvider = ({ children }: TokenProps) => {
   const [allowance, setAllowance] = useState<ContextType['allowance']>('0');
 
   const [targetAddress, setTargetAddress] = useState<Address>();
-  const { address, chainId } = useAccount();
+  const { address, chain, chainId } = useAccount();
 
   const customClient = useCustomClient();
+  const setNotification = useSetNotification();
 
   const loadAllowance = useCallback(
     async (token: TokenData, _targetAddress?: Address) => {
@@ -71,6 +75,52 @@ export const TokenProvider = ({ children }: TokenProps) => {
     [loadAllowance, targetAddress, tokenSelected],
   );
 
+  const approve = async (amount: string) => {
+    if (!address || !chainId || !tokenSelected || !targetAddress) return;
+
+    try {
+      const { request } = await customClient.publicClient.simulateContract({
+        account: address,
+        address: tokenSelected.address,
+        abi: erc20Abi,
+        functionName: 'approve',
+        chain: chain,
+        args: [targetAddress, BigInt(amount)],
+      });
+
+      const hash = await customClient.walletClient?.writeContract(request);
+
+      // if there is no hash and not error is thrown by viem
+      if (!hash) {
+        const uErr = new Error('Approve transaction failed');
+        uErr.name = 'UnknownError';
+        throw uErr;
+      }
+
+      setNotification({
+        type: 'loading',
+        message: 'Pending Transaction',
+        link: {
+          href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
+          text: 'See transaction',
+        },
+        timeout: 0,
+      });
+
+      await customClient.publicClient.waitForTransactionReceipt({ hash });
+      setAllowance(amount);
+
+      return hash.toString();
+    } catch (error: unknown) {
+      console.error(error);
+      setNotification({
+        type: 'error',
+        message: 'Approve transaction failed. Error: ' + (error as GetBlockNumberErrorType)?.name,
+        timeout: 0,
+      });
+    }
+  };
+
   useEffect(() => {
     defaultToken && selectToken(defaultToken.tokenData);
   }, [defaultToken]);
@@ -82,6 +132,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
         allowance,
         selectToken: handleSelectToken,
         setTargetAddress: handleSetTargetAddress,
+        approve,
       }}
     >
       {children}

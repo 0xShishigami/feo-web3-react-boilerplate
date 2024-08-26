@@ -1,8 +1,9 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
-import { TOKEN_LIST } from '~/data/tokens';
-import { useCustomClient } from '~/hooks/useCustomClient';
+
+import { TOKEN_LIST } from '~/data';
+import { useCustomClient } from '~/hooks';
 import { TokenData } from '~/types';
 
 type TokenBalance = {
