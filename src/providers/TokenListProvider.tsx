@@ -2,7 +2,7 @@ import { createContext, ReactNode, useCallback, useEffect, useState } from 'reac
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
 
-import { TOKEN_LIST } from '~/data/tokens';
+import { TOKEN_LIST } from '~/data';
 import { useCustomClient } from '~/hooks';
 import { TokenData } from '~/types';
 
