@@ -1,6 +1,5 @@
 import { useContext } from 'react';
-import { NotificationContext } from '~/providers/NotificationProvider/NotificationProvider';
-import { TNotificationPayload } from '~/providers/NotificationProvider/types';
+import { NotificationContext, TNotificationPayload } from '~/providers';
 
 export const useNotificationContext = () => {
   const context = useContext(NotificationContext);

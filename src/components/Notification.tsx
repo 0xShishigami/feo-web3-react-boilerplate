@@ -1,10 +1,10 @@
 import { useCallback, useEffect } from 'react';
 import { Alert, Link, Snackbar, styled } from '@mui/material';
 
-import { NotificationActionTypes } from '~/providers/NotificationProvider/actions';
+import { NotificationActionTypes } from '~/providers';
 import { useCustomTheme, useNotificationContext } from '~/hooks';
 
-export default function Notification() {
+export const Notification = () => {
   const { state, dispatchNotification } = useNotificationContext();
   const { type, message, visible, timeout, link } = state;
 
@@ -46,7 +46,7 @@ export default function Notification() {
       </StyledAlert>
     </Snackbar>
   );
-}
+};
 
 const StyledAlert = styled(Alert)(({ theme, severity }) => {
   const { currentTheme } = useCustomTheme();

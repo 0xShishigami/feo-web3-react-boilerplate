@@ -1,6 +1,10 @@
+import { createContext, useReducer } from 'react';
+
 import { TNotificationAction, TNotificationState } from './types';
 import { reducer } from './reducer';
-import { createContext, useReducer } from 'react';
+
+export * from './types';
+export * from './actions';
 
 export interface TNotificationContext {
   state: TNotificationState;
@@ -19,13 +23,13 @@ export const NotificationContext = createContext<TNotificationContext>({
   dispatchNotification: () => {},
 });
 
-export default function NotificationProvider({
+export const NotificationProvider = ({
   children,
   defaultValues = initialState,
 }: {
   children: React.ReactNode;
   defaultValues?: TNotificationState;
-}) {
+}) => {
   const [state, dispatch] = useReducer(reducer, defaultValues);
 
   return (
@@ -38,4 +42,4 @@ export default function NotificationProvider({
       {children}
     </NotificationContext.Provider>
   );
-}
+};

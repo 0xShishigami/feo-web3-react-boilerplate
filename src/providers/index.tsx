@@ -6,7 +6,9 @@ import { CustomClientProvider } from './CustomClientProvider';
 import { TokenListProvider } from './TokenListProvider';
 import { TokenProvider } from './TokenProvider';
 import { TxStatusProvider } from './TxStatusProvider';
-import NotificationProvider from './NotificationProvider';
+import { NotificationProvider } from './NotificationProvider';
+
+export * from './NotificationProvider';
 
 type Props = {
   children: ReactNode;

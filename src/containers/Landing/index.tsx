@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles';
-import Notification from '~/components/Notification';
+import { Notification } from '~/components';
 import { Balance, Allowance } from '~/containers';
 
 import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
