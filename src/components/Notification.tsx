@@ -26,14 +26,13 @@ export const Notification = () => {
   const severity = type === 'loading' ? 'info' : type;
 
   return (
-    <Snackbar
+    <StyledSnackbar
       open={visible}
       autoHideDuration={timeout}
       message={message}
       anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
-      sx={{ position: 'absolute' }}
     >
-      <StyledAlert onClose={clearNotification} severity={severity} variant='filled' sx={{ width: '100%' }}>
+      <StyledAlert onClose={clearNotification} severity={severity} variant='filled'>
         {message}
         {link && (
           <>
@@ -44,13 +43,20 @@ export const Notification = () => {
           </>
         )}
       </StyledAlert>
-    </Snackbar>
+    </StyledSnackbar>
   );
 };
+
+const StyledSnackbar = styled(Snackbar)(() => {
+  return {
+    position: 'absolute',
+  };
+});
 
 const StyledAlert = styled(Alert)(({ theme, severity }) => {
   const { currentTheme } = useCustomTheme();
   return {
+    width: '100%',
     border: currentTheme.border,
     borderColor: theme.palette[severity!].dark,
     background: currentTheme.backgroundPrimary,
