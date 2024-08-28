@@ -31,12 +31,17 @@ export const Allowance = () => {
     }
   };
 
+  const resetForm = () => {
+    setInputAddress('');
+    setTargetAddress(undefined);
+    setAmount('');
+  };
+
   const handleApprove = () => {
     const parsedAmount = parseUnits(amount, tokenSelected?.decimals || 18);
 
-    approve(parsedAmount.toString()).then(
-      (hash) =>
-        !!hash &&
+    approve(parsedAmount.toString()).then((hash) => {
+      if (hash) {
         setNotification({
           type: 'success',
           message: `Approved!`,
@@ -45,8 +50,11 @@ export const Allowance = () => {
             text: 'See transaction',
           },
           timeout: 5000,
-        }),
-    );
+        });
+
+        resetForm();
+      }
+    });
   };
 
   const isValidAddress = useMemo(() => isAddress(inputAddress), [inputAddress]);
