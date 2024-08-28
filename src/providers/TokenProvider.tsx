@@ -24,7 +24,7 @@ export const TokenContext = createContext({} as ContextType);
 
 export const TokenProvider = ({ children }: TokenProps) => {
   const { tokenList, loadBalance } = useTokenList();
-  const defaultToken = tokenList[0]; // firt token from TokenList as default
+  const defaultToken = tokenList[0]; // first token from TokenList as default
 
   const [tokenSelected, selectToken] = useState<ContextType['tokenSelected']>();
   const [allowance, setAllowance] = useState<ContextType['allowance']>('0');
