@@ -13,6 +13,7 @@ type ContextType = {
   setTargetAddress: (token: Address | undefined) => void;
 
   approve: (amount: string) => Promise<string | undefined>;
+  transfer: (amount: string) => Promise<string | undefined>;
 };
 
 interface TokenProps {
@@ -22,7 +23,8 @@ interface TokenProps {
 export const TokenContext = createContext({} as ContextType);
 
 export const TokenProvider = ({ children }: TokenProps) => {
-  const [defaultToken] = useTokenList(); // firt token from TokenList as default
+  const { tokenList, loadBalance } = useTokenList();
+  const defaultToken = tokenList[0]; // first token from TokenList as default
 
   const [tokenSelected, selectToken] = useState<ContextType['tokenSelected']>();
   const [allowance, setAllowance] = useState<ContextType['allowance']>('0');
@@ -121,6 +123,53 @@ export const TokenProvider = ({ children }: TokenProps) => {
     }
   };
 
+  const transfer = async (amount: string) => {
+    if (!address || !chainId || !tokenSelected || !targetAddress) return;
+
+    try {
+      const { request } = await customClient.publicClient.simulateContract({
+        account: address,
+        address: tokenSelected.address,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        chain: chain,
+        args: [targetAddress, BigInt(amount)],
+      });
+
+      const hash = await customClient.walletClient?.writeContract(request);
+
+      // if there is no hash and not error is thrown by viem
+      if (!hash) {
+        const uErr = new Error('Transfer transaction failed');
+        uErr.name = 'UnknownError';
+        throw uErr;
+      }
+
+      setNotification({
+        type: 'loading',
+        message: 'Pending Transaction',
+        link: {
+          href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
+          text: 'See transaction',
+        },
+        timeout: 0,
+      });
+
+      await customClient.publicClient.waitForTransactionReceipt({ hash });
+
+      loadBalance();
+
+      return hash.toString();
+    } catch (error: unknown) {
+      console.error(error);
+      setNotification({
+        type: 'error',
+        message: 'Transfer transaction failed. Error: ' + (error as GetBlockNumberErrorType)?.name,
+        timeout: 0,
+      });
+    }
+  };
+
   useEffect(() => {
     defaultToken && selectToken(defaultToken.tokenData);
   }, [defaultToken]);
@@ -133,6 +182,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
         selectToken: handleSelectToken,
         setTargetAddress: handleSetTargetAddress,
         approve,
+        transfer,
       }}
     >
       {children}

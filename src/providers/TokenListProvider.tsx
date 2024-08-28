@@ -11,11 +11,11 @@ type TokenBalance = {
   balance: string;
 };
 
-type TokenMap = {
-  [k: string]: TokenBalance;
-};
+type ContextType = {
+  tokenList: TokenBalance[];
 
-type ContextType = TokenBalance[];
+  loadBalance: () => void;
+};
 interface TokenProps {
   children: ReactNode;
 }
@@ -23,7 +23,7 @@ interface TokenProps {
 export const TokenListContext = createContext({} as ContextType);
 
 export const TokenListProvider = ({ children }: TokenProps) => {
-  const [tokenHashMap, setTokenHashMap] = useState<TokenMap | null>(null);
+  const [tokenList, setTokenList] = useState<TokenBalance[]>([]);
 
   const { address, chain } = useAccount();
   const customClient = useCustomClient();
@@ -63,25 +63,33 @@ export const TokenListProvider = ({ children }: TokenProps) => {
     [address, customClient],
   );
 
-  useEffect(() => {
-    if (!address || !chain?.id) return;
+  const loadTokensBalanceByCurrentChain = useCallback(() => {
+    if (!chain?.id) throw new Error('Chain id not found');
 
     const tokensFilteredByChain = TOKEN_LIST.filter((t) => t.chainId === chain?.id);
 
     loadTokensBalance(tokensFilteredByChain).then((tokensBalance) => {
-      tokensBalance?.forEach((t) => {
-        setTokenHashMap((prev) => {
-          const newMap = prev ?? {};
-          newMap[t.tokenData.name] = t;
-          return newMap;
-        });
-      });
+      setTokenList(tokensBalance ?? []);
     });
+  }, [chain, loadTokensBalance]);
+
+  useEffect(() => {
+    if (!address || !chain?.id) return;
+    loadTokensBalanceByCurrentChain();
 
     return () => {
-      setTokenHashMap(null);
+      setTokenList([]);
     };
-  }, [address, chain, loadTokensBalance]);
+  }, [address, chain, loadTokensBalanceByCurrentChain]);
 
-  return <TokenListContext.Provider value={Object.values(tokenHashMap || {})}>{children}</TokenListContext.Provider>;
+  return (
+    <TokenListContext.Provider
+      value={{
+        tokenList,
+        loadBalance: loadTokensBalanceByCurrentChain,
+      }}
+    >
+      {children}
+    </TokenListContext.Provider>
+  );
 };

@@ -1,19 +1,29 @@
 import { useMemo, useState } from 'react';
-import { formatUnits, isAddress, parseUnits } from 'viem';
+import { isAddress, parseUnits } from 'viem';
 import { useAccount } from 'wagmi';
-import { Button, FormControl, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 
 import { useSetNotification, useToken, useTokenList } from '~/hooks';
 
-export const Allowance = () => {
+export const Transfer = () => {
   const { tokenList } = useTokenList();
-  const { allowance, tokenSelected, selectToken, setTargetAddress, approve } = useToken();
+  const { tokenSelected, selectToken, setTargetAddress, transfer } = useToken();
 
   const [inputAddress, setInputAddress] = useState('');
   const [amount, setAmount] = useState('');
 
   const { chain } = useAccount();
   const setNotification = useSetNotification();
+
+  const parsedAmount = useMemo(() => parseUnits(amount, tokenSelected?.decimals || 18), [amount, tokenSelected]);
+
+  const tokenSelectedBalance = useMemo(() => {
+    if (tokenSelected) {
+      const balance = tokenList.find((t) => t.tokenData.name === tokenSelected.name)?.balance;
+
+      return BigInt(balance || 0);
+    }
+  }, [tokenSelected, tokenList]);
 
   const handleChangeToken = (tokenName: string) => {
     const tokenToBeSelected = tokenList.find((t) => t.tokenData.name === tokenName);
@@ -37,14 +47,12 @@ export const Allowance = () => {
     setAmount('');
   };
 
-  const handleApprove = () => {
-    const parsedAmount = parseUnits(amount, tokenSelected?.decimals || 18);
-
-    approve(parsedAmount.toString()).then((hash) => {
+  const handleTransfer = () => {
+    transfer(parsedAmount.toString()).then((hash) => {
       if (hash) {
         setNotification({
           type: 'success',
-          message: `Approved!`,
+          message: `Transfered!`,
           link: {
             href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
             text: 'See transaction',
@@ -58,6 +66,8 @@ export const Allowance = () => {
   };
 
   const isValidAddress = useMemo(() => isAddress(inputAddress), [inputAddress]);
+  const isBalanceEnough = tokenSelectedBalance && parsedAmount <= tokenSelectedBalance;
+  const isTransferDisabled = !amount || parsedAmount == 0n || !inputAddress || !isValidAddress || !isBalanceEnough;
 
   return (
     <>
@@ -89,23 +99,21 @@ export const Allowance = () => {
         />
       </FormControl>
 
-      <Typography variant='overline' display='block' mt={1}>
-        Current Allowance: {formatUnits(BigInt(allowance), tokenSelected?.decimals ?? 18)}
-      </Typography>
-
       <FormControl fullWidth margin='dense'>
         <TextField
-          label='Set allowance'
+          label='Set amount'
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           type='number'
           size='small'
+          error={!isBalanceEnough}
+          helperText={isBalanceEnough ? '' : 'Insufficient balance'}
         />
       </FormControl>
 
       <FormControl fullWidth margin='dense'>
-        <Button onClick={handleApprove} disabled={!amount || !inputAddress} variant='outlined'>
-          Approve
+        <Button onClick={handleTransfer} disabled={isTransferDisabled} variant='outlined'>
+          Transfer
         </Button>
       </FormControl>
     </>
