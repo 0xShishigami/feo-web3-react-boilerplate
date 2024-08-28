@@ -15,7 +15,11 @@ type TokenMap = {
   [k: string]: TokenBalance;
 };
 
-type ContextType = TokenBalance[];
+type ContextType = {
+  tokenList: TokenBalance[];
+
+  loadBalance: () => void;
+};
 interface TokenProps {
   children: ReactNode;
 }
@@ -63,8 +67,8 @@ export const TokenListProvider = ({ children }: TokenProps) => {
     [address, customClient],
   );
 
-  useEffect(() => {
-    if (!address || !chain?.id) return;
+  const loadTokensBalanceByCurrentChain = useCallback(() => {
+    if (!chain?.id) throw new Error('Chain id not found');
 
     const tokensFilteredByChain = TOKEN_LIST.filter((t) => t.chainId === chain?.id);
 
@@ -77,11 +81,25 @@ export const TokenListProvider = ({ children }: TokenProps) => {
         });
       });
     });
+  }, [chain, loadTokensBalance]);
+
+  useEffect(() => {
+    if (!address || !chain?.id) return;
+    loadTokensBalanceByCurrentChain();
 
     return () => {
       setTokenHashMap(null);
     };
-  }, [address, chain, loadTokensBalance]);
+  }, [address, chain, loadTokensBalanceByCurrentChain]);
 
-  return <TokenListContext.Provider value={Object.values(tokenHashMap || {})}>{children}</TokenListContext.Provider>;
+  return (
+    <TokenListContext.Provider
+      value={{
+        tokenList: Object.values(tokenHashMap || {}),
+        loadBalance: loadTokensBalanceByCurrentChain,
+      }}
+    >
+      {children}
+    </TokenListContext.Provider>
+  );
 };

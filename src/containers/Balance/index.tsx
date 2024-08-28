@@ -5,7 +5,7 @@ import { useCustomTheme, useTokenList } from '~/hooks';
 import { FORM_MIN_WIDTH } from '~/utils';
 
 export const Balance = () => {
-  const tokenList = useTokenList();
+  const { tokenList } = useTokenList();
   return (
     <Card>
       {tokenList.map((t) => (

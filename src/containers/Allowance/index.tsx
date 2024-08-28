@@ -7,7 +7,7 @@ import { useCustomTheme, useSetNotification, useToken, useTokenList } from '~/ho
 import { FORM_MIN_WIDTH } from '~/utils';
 
 export const Allowance = () => {
-  const tokenList = useTokenList();
+  const { tokenList } = useTokenList();
   const { allowance, tokenSelected, selectToken, setTargetAddress, approve } = useToken();
 
   const [inputAddress, setInputAddress] = useState('');
