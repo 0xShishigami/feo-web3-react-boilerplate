@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
-import { Address, erc20Abi, GetBlockNumberErrorType } from 'viem';
+import { Address, GetBlockNumberErrorType } from 'viem';
 import { useAccount } from 'wagmi';
+import { WONDER_TOKEN_ABI } from '~/data';
 
 import { useCustomClient, useTokenList, useSetNotification } from '~/hooks';
 import { TokenData } from '~/types';
@@ -14,6 +15,7 @@ type ContextType = {
 
   approve: (amount: string) => Promise<string | undefined>;
   transfer: (amount: string) => Promise<string | undefined>;
+  mint: (amount: string) => Promise<string | undefined>;
 };
 
 interface TokenProps {
@@ -44,7 +46,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
       try {
         const result = await customClient.publicClient.readContract({
           address: token.address,
-          abi: erc20Abi,
+          abi: WONDER_TOKEN_ABI,
           functionName: 'allowance',
           args: [address, targetAddress ?? (_targetAddress || '0x')],
         });
@@ -84,7 +86,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
       const { request } = await customClient.publicClient.simulateContract({
         account: address,
         address: tokenSelected.address,
-        abi: erc20Abi,
+        abi: WONDER_TOKEN_ABI,
         functionName: 'approve',
         chain: chain,
         args: [targetAddress, BigInt(amount)],
@@ -130,7 +132,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
       const { request } = await customClient.publicClient.simulateContract({
         account: address,
         address: tokenSelected.address,
-        abi: erc20Abi,
+        abi: WONDER_TOKEN_ABI,
         functionName: 'transfer',
         chain: chain,
         args: [targetAddress, BigInt(amount)],
@@ -170,6 +172,53 @@ export const TokenProvider = ({ children }: TokenProps) => {
     }
   };
 
+  const mint = async (amount: string) => {
+    if (!address || !chainId || !tokenSelected) return;
+
+    try {
+      const { request } = await customClient.publicClient.simulateContract({
+        account: address,
+        address: tokenSelected.address,
+        abi: WONDER_TOKEN_ABI,
+        functionName: 'mint',
+        chain: chain,
+        args: [address, BigInt(amount)],
+      });
+
+      const hash = await customClient.walletClient?.writeContract(request);
+
+      // if there is no hash and not error is thrown by viem
+      if (!hash) {
+        const uErr = new Error('Mint transaction failed');
+        uErr.name = 'UnknownError';
+        throw uErr;
+      }
+
+      setNotification({
+        type: 'loading',
+        message: 'Pending Transaction',
+        link: {
+          href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
+          text: 'See transaction',
+        },
+        timeout: 0,
+      });
+
+      await customClient.publicClient.waitForTransactionReceipt({ hash });
+
+      loadBalance();
+
+      return hash.toString();
+    } catch (error: unknown) {
+      console.error(error);
+      setNotification({
+        type: 'error',
+        message: 'Mint transaction failed. Error: ' + (error as GetBlockNumberErrorType)?.name,
+        timeout: 0,
+      });
+    }
+  };
+
   useEffect(() => {
     defaultToken && selectToken(defaultToken.tokenData);
   }, [defaultToken]);
@@ -183,6 +232,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
         setTargetAddress: handleSetTargetAddress,
         approve,
         transfer,
+        mint,
       }}
     >
       {children}

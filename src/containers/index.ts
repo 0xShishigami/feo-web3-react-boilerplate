@@ -3,6 +3,7 @@ export * from './Header';
 export * from './Layout';
 export * from './Landing';
 export * from './Balance';
+export * from './FunctionsTab';
 export * from './Allowance';
 export * from './Transfer';
-export * from './FunctionsTab';
+export * from './Mint';
