@@ -1,4 +1,5 @@
 import { TokenData } from '~/types';
+import { WonderTokenERC20 } from './abi';
 
 export const TOKEN_LIST: TokenData[] = [
   {
@@ -14,3 +15,5 @@ export const TOKEN_LIST: TokenData[] = [
     name: 'USDC',
   },
 ];
+
+export const WONDER_TOKEN_ABI = WonderTokenERC20;

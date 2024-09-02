@@ -1,7 +1,7 @@
 import { styled } from '@mui/material/styles';
 
 import { Notification } from '~/components';
-import { Balance, Allowance, Transfer, FunctionsTab } from '~/containers';
+import { Balance, Allowance, Transfer, FunctionsTab, Mint } from '~/containers';
 import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
 
 export const Landing = () => {
@@ -13,6 +13,7 @@ export const Landing = () => {
         tabs={[
           { label: 'Allowance', component: <Allowance /> },
           { label: 'Transfer', component: <Transfer /> },
+          { label: 'Mint', component: <Mint /> },
         ]}
       />
     </Container>
