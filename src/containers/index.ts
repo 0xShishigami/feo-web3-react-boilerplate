@@ -7,3 +7,4 @@ export * from './FunctionsTab';
 export * from './Allowance';
 export * from './Transfer';
 export * from './Mint';
+export * from './Logs';
