@@ -4,19 +4,21 @@ import { Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 
 import { useCustomTheme, useToken } from '~/hooks';
+import { truncateAddress } from '~/utils';
 
 export const Logs = () => {
   const { logs, tokenSelected } = useToken();
 
   const rows = logs.map((log) => {
     const target = log.eventName === 'Transfer' ? log.args.to : log.args.spender;
+    const truncatedTarget = truncateAddress(target);
     const formattedValue = formatUnits(BigInt(log.args.value), tokenSelected?.decimals ?? 18);
 
     return {
       id: log.blockNumber?.toString(),
       eventName: log.eventName,
       value: formattedValue,
-      target: target,
+      target: truncatedTarget,
       blockNumber: log.blockNumber?.toString(),
     };
   });
