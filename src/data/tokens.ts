@@ -16,4 +16,7 @@ export const TOKEN_LIST: TokenData[] = [
   },
 ];
 
+export const WONDER_TOKEN_EVENT_APPROVAL_ABI = WonderTokenERC20[15];
+export const WONDER_TOKEN_EVENT_TRANSFER_ABI = WonderTokenERC20[17];
+
 export const WONDER_TOKEN_ABI = WonderTokenERC20;

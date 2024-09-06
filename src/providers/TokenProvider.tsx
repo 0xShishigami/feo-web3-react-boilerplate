@@ -1,10 +1,30 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
-import { Address, GetBlockNumberErrorType } from 'viem';
+import { Address, GetBlockNumberErrorType, Log } from 'viem';
 import { useAccount } from 'wagmi';
 
-import { WONDER_TOKEN_ABI } from '~/data';
+import { WONDER_TOKEN_ABI, WONDER_TOKEN_EVENT_APPROVAL_ABI, WONDER_TOKEN_EVENT_TRANSFER_ABI } from '~/data';
 import { useCustomClient, useTokenList, useSetNotification } from '~/hooks';
 import { TokenData } from '~/types';
+
+type EventLogs = Log &
+  (
+    | {
+        eventName: 'Transfer';
+        args: {
+          from: string;
+          to: string;
+          value: string;
+        };
+      }
+    | {
+        eventName: 'Approval';
+        args: {
+          owner: string;
+          spender: string;
+          value: string;
+        };
+      }
+  );
 
 type ContextType = {
   tokenSelected: TokenData | undefined;
@@ -16,6 +36,8 @@ type ContextType = {
   approve: (amount: string) => Promise<string | undefined>;
   transfer: (amount: string) => Promise<string | undefined>;
   mint: (amount: string) => Promise<string | undefined>;
+
+  logs: EventLogs[];
 };
 
 interface TokenProps {
@@ -30,6 +52,8 @@ export const TokenProvider = ({ children }: TokenProps) => {
 
   const [tokenSelected, selectToken] = useState<ContextType['tokenSelected']>();
   const [allowance, setAllowance] = useState<ContextType['allowance']>('0');
+
+  const [logs, setLogs] = useState<ContextType['logs']>([]);
 
   const [targetAddress, setTargetAddress] = useState<Address>();
   const { address, chain, chainId } = useAccount();
@@ -184,9 +208,65 @@ export const TokenProvider = ({ children }: TokenProps) => {
     );
   };
 
+  const loadTransferAndApprovalLogs = useCallback(async () => {
+    if (!tokenSelected || !address) return;
+
+    const transferLogs = await customClient.publicClient.getLogs({
+      address: tokenSelected.address,
+      event: WONDER_TOKEN_EVENT_TRANSFER_ABI,
+      args: { from: address },
+      fromBlock: 'earliest',
+      toBlock: 'latest',
+    });
+
+    const approvalLogs = await customClient.publicClient.getLogs({
+      address: tokenSelected.address,
+      event: WONDER_TOKEN_EVENT_APPROVAL_ABI,
+      args: { owner: address },
+      fromBlock: 'earliest',
+      toBlock: 'latest',
+    });
+
+    const tmpLogs = [...transferLogs, ...approvalLogs];
+
+    const sortedLogs = tmpLogs.sort((a, b) => {
+      if (a.blockNumber && b.blockNumber) {
+        return Number(b.blockNumber) - Number(a.blockNumber);
+      }
+      return 0;
+    });
+
+    setLogs(sortedLogs as unknown as EventLogs[]);
+  }, [address, customClient.publicClient, tokenSelected]);
+
   useEffect(() => {
     defaultToken && selectToken(defaultToken.tokenData);
   }, [defaultToken]);
+
+  useEffect(() => {
+    if (!tokenSelected || !address) return;
+
+    const unwatchTransferEvents = customClient.publicClient.watchContractEvent({
+      address: tokenSelected?.address,
+      abi: WONDER_TOKEN_ABI,
+      eventName: 'Transfer',
+      onLogs: () => loadTransferAndApprovalLogs(),
+    });
+
+    const unwatchApprovalEvents = customClient.publicClient.watchContractEvent({
+      address: tokenSelected?.address,
+      abi: WONDER_TOKEN_ABI,
+      eventName: 'Approval',
+      onLogs: () => loadTransferAndApprovalLogs(),
+    });
+
+    loadTransferAndApprovalLogs();
+
+    return () => {
+      unwatchTransferEvents();
+      unwatchApprovalEvents();
+    };
+  }, [customClient.publicClient, tokenSelected, address, loadTransferAndApprovalLogs]);
 
   return (
     <TokenContext.Provider
@@ -198,6 +278,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
         approve,
         transfer,
         mint,
+        logs,
       }}
     >
       {children}
