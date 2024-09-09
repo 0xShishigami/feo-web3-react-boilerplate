@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { parseUnits } from 'viem';
-import { useAccount } from 'wagmi';
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 
-import { useSetNotification, useToken, useTokenList } from '~/hooks';
+import { useToken, useTokenList } from '~/hooks';
 
 export const Mint = () => {
   const { tokenList } = useTokenList();
@@ -11,10 +10,10 @@ export const Mint = () => {
 
   const [amount, setAmount] = useState('');
 
-  const { chain } = useAccount();
-  const setNotification = useSetNotification();
-
-  const parsedAmount = useMemo(() => parseUnits(amount, tokenSelected?.decimals || 18), [amount, tokenSelected]);
+  const parsedAmount = useMemo(
+    () => parseUnits(amount, tokenSelected?.decimals || 18).toString(),
+    [amount, tokenSelected],
+  );
 
   const handleChangeToken = (tokenName: string) => {
     const tokenToBeSelected = tokenList.find((t) => t.tokenData.name === tokenName);
@@ -30,24 +29,10 @@ export const Mint = () => {
   };
 
   const handleMint = () => {
-    mint(parsedAmount.toString()).then((hash) => {
-      if (hash) {
-        setNotification({
-          type: 'success',
-          message: `Minted!`,
-          link: {
-            href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
-            text: 'See transaction',
-          },
-          timeout: 5000,
-        });
-
-        resetForm();
-      }
-    });
+    mint(parsedAmount).then(() => resetForm());
   };
 
-  const isMintDisabled = !amount || parsedAmount == 0n;
+  const isMintDisabled = !amount || parsedAmount == '0n';
 
   return (
     <>

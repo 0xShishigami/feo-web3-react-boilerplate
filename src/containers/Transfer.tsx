@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { isAddress, parseUnits } from 'viem';
-import { useAccount } from 'wagmi';
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 
-import { useSetNotification, useToken, useTokenList } from '~/hooks';
+import { useToken, useTokenList } from '~/hooks';
 
 export const Transfer = () => {
   const { tokenList } = useTokenList();
@@ -12,16 +11,16 @@ export const Transfer = () => {
   const [inputAddress, setInputAddress] = useState('');
   const [amount, setAmount] = useState('');
 
-  const { chain } = useAccount();
-  const setNotification = useSetNotification();
-
-  const parsedAmount = useMemo(() => parseUnits(amount, tokenSelected?.decimals || 18), [amount, tokenSelected]);
+  const parsedAmount = useMemo(
+    () => parseUnits(amount, tokenSelected?.decimals || 18).toString(),
+    [amount, tokenSelected],
+  );
 
   const tokenSelectedBalance = useMemo(() => {
     if (tokenSelected) {
       const balance = tokenList.find((t) => t.tokenData.name === tokenSelected.name)?.balance;
 
-      return BigInt(balance || 0);
+      return balance ?? '0';
     }
   }, [tokenSelected, tokenList]);
 
@@ -48,26 +47,12 @@ export const Transfer = () => {
   };
 
   const handleTransfer = () => {
-    transfer(parsedAmount.toString()).then((hash) => {
-      if (hash) {
-        setNotification({
-          type: 'success',
-          message: `Transfered!`,
-          link: {
-            href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
-            text: 'See transaction',
-          },
-          timeout: 5000,
-        });
-
-        resetForm();
-      }
-    });
+    transfer(parsedAmount).then(() => resetForm());
   };
 
   const isValidAddress = useMemo(() => isAddress(inputAddress), [inputAddress]);
   const isBalanceEnough = tokenSelectedBalance && parsedAmount <= tokenSelectedBalance;
-  const isTransferDisabled = !amount || parsedAmount == 0n || !inputAddress || !isValidAddress || !isBalanceEnough;
+  const isTransferDisabled = !amount || parsedAmount == '0n' || !inputAddress || !isValidAddress || !isBalanceEnough;
 
   return (
     <>
