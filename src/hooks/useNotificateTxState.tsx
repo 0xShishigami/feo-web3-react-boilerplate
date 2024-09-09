@@ -4,20 +4,20 @@ import { useSetNotification } from '~/hooks/useNotification';
 
 type NotificationTxStateArgs =
   | {
-      type: 'loading';
-      hash: Hash;
-      message?: string;
-    }
+    type: 'loading';
+    hash: Hash;
+    message?: string;
+  }
   | {
-      type: 'success';
-      hash: Hash;
-      message?: string;
-    }
+    type: 'success';
+    hash: Hash;
+    message?: string;
+  }
   | {
-      type: 'error';
-      message?: string;
-      error?: unknown;
-    };
+    type: 'error';
+    message?: string;
+    error?: unknown;
+  };
 
 const pendingMessage = 'Pending Transaction',
   successMessage = 'Transaction successful',
