@@ -1,4 +1,3 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { styled } from '@mui/material/styles';
 import { IconButton } from '@mui/material';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -6,6 +5,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 import { useCustomTheme } from '~/hooks/useTheme';
 import { zIndex, HEADER_HEIGHT } from '~/utils';
+import { CustomConnectButton } from '~/components';
 
 export const Header = () => {
   const { changeTheme, theme } = useCustomTheme();
@@ -14,7 +14,7 @@ export const Header = () => {
     <StyledHeader>
       <Logo>Logo</Logo>
       <SIconButton onClick={changeTheme}>{theme === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}</SIconButton>
-      <ConnectButton />
+      <CustomConnectButton />
     </StyledHeader>
   );
 };
