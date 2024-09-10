@@ -20,10 +20,12 @@ interface TokenProps {
   children: ReactNode;
 }
 
+const defaultTokenList: TokenBalance[] = [...TOKEN_LIST.map((t) => ({ tokenData: t, balance: '0' }))];
+
 export const TokenListContext = createContext({} as ContextType);
 
 export const TokenListProvider = ({ children }: TokenProps) => {
-  const [tokenList, setTokenList] = useState<TokenBalance[]>([]);
+  const [tokenList, setTokenList] = useState<TokenBalance[]>(defaultTokenList);
 
   const { address, chain } = useAccount();
   const customClient = useCustomClient();
@@ -74,7 +76,11 @@ export const TokenListProvider = ({ children }: TokenProps) => {
   }, [chain, loadTokensBalance]);
 
   useEffect(() => {
-    if (!address || !chain?.id) return;
+    if (!address || !chain?.id) {
+      setTokenList(defaultTokenList);
+      return;
+    }
+
     loadTokensBalanceByCurrentChain();
 
     return () => {
