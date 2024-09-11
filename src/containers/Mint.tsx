@@ -32,7 +32,7 @@ export const Mint = () => {
     mint(parsedAmount).then(() => resetForm());
   };
 
-  const isMintDisabled = !amount || parsedAmount == '0n';
+  const isMintDisabled = !amount || parsedAmount == '0';
 
   return (
     <>
