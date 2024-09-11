@@ -7,9 +7,13 @@ import { FORM_MIN_WIDTH } from '~/utils';
 export const Balance = () => {
   const { tokenList } = useTokenList();
   return (
-    <Card>
+    <Card data-testid='balance'>
       {tokenList.map((t) => (
-        <Box key={`${t.tokenData.chainId}-${t.tokenData.address}`} textAlign='center'>
+        <Box
+          key={`${t.tokenData.chainId}-${t.tokenData.address}`}
+          textAlign='center'
+          data-testid={`balance-${t.tokenData.name}`}
+        >
           <Typography variant='h6'>{t.tokenData.name}</Typography>
           <Typography variant='body1'>Balance: {formatUnits(BigInt(t.balance), t.tokenData.decimals)}</Typography>
         </Box>
