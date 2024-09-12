@@ -1,6 +1,6 @@
 import { Address, PublicClient } from 'viem';
 import { WONDER_TOKEN_ABI, WONDER_TOKEN_EVENTS } from '~/data';
-import { EventLogs } from '~/types';
+import { EventLogs, TokenData } from '~/types';
 
 interface GetTransferLogsProps {
   tokenAddress: Address;
@@ -47,30 +47,44 @@ const getApprovalLogs = async ({ tokenAddress, ownerAddress, publicClient }: Get
 };
 
 interface GetTransferAndApprovalLogsProps {
-  tokenAddress: Address;
+  tokens: TokenData[];
   address: Address;
   publicClient: PublicClient;
 }
 
 export const getTransferAndApprovalLogs = async ({
-  tokenAddress,
+  tokens,
   address,
   publicClient,
 }: GetTransferAndApprovalLogsProps): Promise<EventLogs[] | undefined> => {
   try {
-    const transferLogs = (await getTransferLogs({ tokenAddress, fromAddress: address, publicClient })) || [];
-    const approvalLogs = (await getApprovalLogs({ tokenAddress, ownerAddress: address, publicClient })) || [];
+    const logs: EventLogs[] = [];
 
-    const tmpLogs: EventLogs[] = [...transferLogs, ...approvalLogs];
+    for (const tokenData of tokens) {
+      const { address: tokenAddress } = tokenData;
 
-    const sortedLogs = tmpLogs.sort((a, b) => {
-      if (a.blockNumber && b.blockNumber) {
-        return Number(b.blockNumber) - Number(a.blockNumber);
+      const transferLogs = (await getTransferLogs({ tokenAddress, fromAddress: address, publicClient })) || [];
+      const approvalLogs = (await getApprovalLogs({ tokenAddress, ownerAddress: address, publicClient })) || [];
+
+      const tmpLogs: EventLogs[] = [...transferLogs, ...approvalLogs];
+
+      // add tokenData to logs
+      tmpLogs.forEach((log) => {
+        log.tokenData = tokenData;
+      });
+
+      logs.push(...tmpLogs);
+    }
+
+    // sort logs desc by blockNumber
+    logs.sort((a, b) => {
+      if (a.blockNumber === null || b.blockNumber === null) {
+        return 0;
       }
-      return 0;
+      return Number(b.blockNumber) - Number(a.blockNumber);
     });
 
-    return sortedLogs;
+    return logs;
   } catch (error) {
     console.error(error);
   }

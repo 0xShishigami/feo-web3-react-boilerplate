@@ -1,7 +1,7 @@
 import { Log } from 'viem';
+import { TokenData } from '~/types/Token';
 
-export type EventLogs = Log &
-  (
+export type EventLogs = Log & { tokenData: TokenData } & (
     | {
         eventName: 'Transfer';
         args: {

@@ -185,7 +185,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
     if (!tokenSelected || !address) return;
 
     const logs = await getTransferAndApprovalLogs({
-      tokenAddress: tokenSelected.address,
+      tokens: tokenList.map((token) => token.tokenData),
       address,
       publicClient: customClient.publicClient,
     });
@@ -193,7 +193,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
     if (!logs) throw new Error('Load logs failed');
 
     setLogs(logs);
-  }, [address, customClient.publicClient, tokenSelected]);
+  }, [address, customClient.publicClient, tokenList, tokenSelected]);
 
   // set default token when loaded
   useEffect(() => {
