@@ -2,6 +2,23 @@ import { GetBlockNumberErrorType, Hash } from 'viem';
 import { useAccount } from 'wagmi';
 import { useSetNotification } from '~/hooks/useNotification';
 
+type NotificationTxStateArgs =
+  | {
+      type: 'loading';
+      hash: Hash;
+      message?: string;
+    }
+  | {
+      type: 'success';
+      hash: Hash;
+      message?: string;
+    }
+  | {
+      type: 'error';
+      message?: string;
+      error?: unknown;
+    };
+
 const pendingMessage = 'Pending Transaction',
   successMessage = 'Transaction successful',
   errorMessage = 'Error while processing transaction';
@@ -14,37 +31,38 @@ export const useNotificateTxState = () => {
 
   const blockExplorer = chain?.blockExplorers?.default.url || defaultBlockExplorer;
 
-  const notificateTxPending = (hash: Hash, message: string = pendingMessage) => {
+  const notificateTx = (args: NotificationTxStateArgs) => {
+    let notificationMessage = args.message;
+    let link;
+
+    switch (args.type) {
+      case 'loading':
+        notificationMessage = args.message || pendingMessage;
+        link = {
+          href: `${blockExplorer}/tx/${args.hash}`,
+          text: 'See transaction',
+        };
+        break;
+      case 'success':
+        notificationMessage = args.message || successMessage;
+        link = {
+          href: `${blockExplorer}/tx/${args.hash}`,
+          text: 'See transaction',
+        };
+        break;
+      case 'error':
+        notificationMessage =
+          `${args.message || errorMessage}. Error: ` + (args.error as GetBlockNumberErrorType)?.name;
+        break;
+    }
+
     setNotification({
-      type: 'loading',
-      message,
-      link: {
-        href: `${blockExplorer}/tx/${hash}`,
-        text: 'See transaction',
-      },
+      type: args.type,
+      message: notificationMessage,
+      link,
       timeout: 0,
     });
   };
 
-  const notificateTxSuccess = (hash: Hash, message: string = successMessage) => {
-    setNotification({
-      type: 'success',
-      message,
-      link: {
-        href: `${blockExplorer}/tx/${hash}`,
-        text: 'See transaction',
-      },
-      timeout: 0,
-    });
-  };
-
-  const notificateTxError = (error: unknown, message: string = errorMessage) => {
-    setNotification({
-      type: 'error',
-      message: `${message}. Error: ` + (error as GetBlockNumberErrorType)?.name,
-      timeout: 0,
-    });
-  };
-
-  return { notificateTxPending, notificateTxSuccess, notificateTxError };
+  return notificateTx;
 };

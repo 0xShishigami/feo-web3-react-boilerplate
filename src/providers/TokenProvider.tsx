@@ -44,7 +44,7 @@ export const TokenProvider = ({ children }: TokenProps) => {
 
   const { address, chain } = useAccount();
   const customClient = useCustomClient();
-  const { notificateTxPending, notificateTxSuccess, notificateTxError } = useNotificateTxState();
+  const notificateTxState = useNotificateTxState();
 
   const loadAllowance = useCallback(
     async (token: TokenData, _targetAddress?: Address) => {
@@ -107,14 +107,14 @@ export const TokenProvider = ({ children }: TokenProps) => {
         throw uErr;
       }
 
-      notificateTxPending(hash);
+      notificateTxState({ type: 'loading', hash });
 
       await customClient.publicClient.waitForTransactionReceipt({ hash });
 
       loadAllowance(tokenSelected);
-      notificateTxSuccess(hash, 'Approve transaction success');
+      notificateTxState({ type: 'success', hash, message: 'Approve transaction success' });
     } catch (error) {
-      notificateTxError(error);
+      notificateTxState({ type: 'error', error });
     }
   };
 
@@ -139,14 +139,14 @@ export const TokenProvider = ({ children }: TokenProps) => {
         throw uErr;
       }
 
-      notificateTxPending(hash);
+      notificateTxState({ type: 'loading', hash });
 
       await customClient.publicClient.waitForTransactionReceipt({ hash });
 
       loadBalance();
-      notificateTxSuccess(hash, 'Transfer transaction success');
+      notificateTxState({ type: 'success', hash, message: 'Transfer transaction success' });
     } catch (error) {
-      notificateTxError(error);
+      notificateTxState({ type: 'error', error });
     }
   };
 
@@ -170,14 +170,14 @@ export const TokenProvider = ({ children }: TokenProps) => {
         throw uErr;
       }
 
-      notificateTxPending(hash);
+      notificateTxState({ type: 'loading', hash });
 
       await customClient.publicClient.waitForTransactionReceipt({ hash });
 
       loadBalance();
-      notificateTxSuccess(hash, 'Mint transaction success');
+      notificateTxState({ type: 'success', hash, message: 'Mint transaction success' });
     } catch (error) {
-      notificateTxError(error);
+      notificateTxState({ type: 'error', error });
     }
   };
 
