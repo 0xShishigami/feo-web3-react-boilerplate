@@ -19,8 +19,3 @@ Cypress.Commands.add('changeSelect', (selectId, itemId, value) => {
   cy.getByTestId(itemId).click();
   cy.get(selectId).find('input').should('have.value', value);
 });
-
-Cypress.Commands.add('clickButton', (buttonId) => {
-  cy.get(buttonId).should('be.enabled');
-  cy.get(buttonId).click();
-});

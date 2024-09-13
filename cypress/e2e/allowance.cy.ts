@@ -1,21 +1,5 @@
 import { transactionData } from '../support/constants';
 
-const fillInputAmount = (amount: string) => {
-  cy.fillInput('@amount', amount);
-};
-
-const fillInputAddress = (address: string) => {
-  cy.fillInput('@targetAddress', address);
-};
-
-const selectToken = (tokenId: string, token: string) => {
-  cy.changeSelect('@selectToken', tokenId, token);
-};
-
-const clickApproveButton = () => {
-  cy.clickButton('@approveButton');
-};
-
 describe('Allowance', function () {
   beforeEach(() => {
     cy.visit('/');
@@ -33,14 +17,14 @@ describe('Allowance', function () {
   });
 
   it('should change token', () => {
-    selectToken(`${transactionData.token.name}-token`, transactionData.token.name);
+    cy.changeSelect('@selectToken', `${transactionData.token.name}-token`, transactionData.token.name);
   });
 
   it('should validate address', () => {
-    fillInputAddress('wrong-address');
+    cy.fillInput('@targetAddress', 'wrong-address');
     cy.get('@targetAddress').get('.MuiInputBase-root').should('have.class', 'Mui-error');
 
-    fillInputAmount('100');
+    cy.fillInput('@amount', '100');
     cy.get('@approveButton').should('be.disabled');
 
     cy.get('@targetAddress').clear();
@@ -50,7 +34,7 @@ describe('Allowance', function () {
   });
 
   it('should validate amount', function () {
-    fillInputAddress(transactionData.targetAddress);
+    cy.fillInput('@targetAddress', transactionData.targetAddress);
 
     // amount is empty
 
@@ -58,15 +42,15 @@ describe('Allowance', function () {
   });
 
   it('should approve new allowance', () => {
-    selectToken(`${transactionData.token.name}-token`, transactionData.token.name);
+    cy.changeSelect('@selectToken', `${transactionData.token.name}-token`, transactionData.token.name);
 
-    fillInputAddress(transactionData.targetAddress);
+    cy.fillInput('@targetAddress', transactionData.targetAddress);
 
-    fillInputAmount(transactionData.amount);
+    cy.fillInput('@amount', transactionData.amount);
 
     cy.intercept('POST', 'https://eth-sepolia.g.alchemy.com/v2/**').as('simulate-contract');
 
-    clickApproveButton();
+    cy.get('@approveButton').click();
 
     cy.wait('@simulate-contract').then(({ request }) => {
       expect(request.body.params[0].from).to.eq(transactionData.userAddress);
