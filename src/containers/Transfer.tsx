@@ -51,7 +51,7 @@ export const Transfer = () => {
   };
 
   const isValidAddress = useMemo(() => isAddress(inputAddress), [inputAddress]);
-  const isBalanceEnough = tokenSelectedBalance && parsedAmount <= tokenSelectedBalance;
+  const isBalanceEnough = tokenSelectedBalance && BigInt(parsedAmount) <= BigInt(tokenSelectedBalance);
   const isTransferDisabled = !amount || parsedAmount == '0' || !inputAddress || !isValidAddress || !isBalanceEnough;
 
   return (
