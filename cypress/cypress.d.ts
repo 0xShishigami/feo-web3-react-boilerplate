@@ -5,5 +5,6 @@ declare namespace Cypress {
     fillInput(testId: string, value: string): Chainable<Subject>;
     changeSelect(selectId: string, itemId: string, value: string): Chainable<Subject>;
     clickButton(buttonId: string): Chainable<Subject>;
+    interceptLoadTokenBalance(): Chainable<Subject>;
   }
 }
