@@ -1,30 +1,17 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
-import { Address, GetBlockNumberErrorType, Log } from 'viem';
+import { Address, WalletClient } from 'viem';
 import { useAccount } from 'wagmi';
 
-import { WONDER_TOKEN_ABI, WONDER_TOKEN_EVENT_APPROVAL_ABI, WONDER_TOKEN_EVENT_TRANSFER_ABI } from '~/data';
-import { useCustomClient, useTokenList, useSetNotification } from '~/hooks';
-import { TokenData } from '~/types';
-
-type EventLogs = Log &
-  (
-    | {
-        eventName: 'Transfer';
-        args: {
-          from: string;
-          to: string;
-          value: string;
-        };
-      }
-    | {
-        eventName: 'Approval';
-        args: {
-          owner: string;
-          spender: string;
-          value: string;
-        };
-      }
-  );
+import { useCustomClient, useTokenList, useNotificateTxState } from '~/hooks';
+import { EventLogs, TokenData } from '~/types';
+import {
+  approve,
+  getAllowance,
+  getTransferAndApprovalLogs,
+  mint,
+  transfer,
+  watchTransferAndApprovalLogs,
+} from '~/utils';
 
 type ContextType = {
   tokenSelected: TokenData | undefined;
@@ -33,9 +20,9 @@ type ContextType = {
   selectToken: (token: TokenData) => void;
   setTargetAddress: (token: Address | undefined) => void;
 
-  approve: (amount: string) => Promise<string | undefined>;
-  transfer: (amount: string) => Promise<string | undefined>;
-  mint: (amount: string) => Promise<string | undefined>;
+  approve: (amount: string) => Promise<void>;
+  transfer: (amount: string) => Promise<void>;
+  mint: (amount: string) => Promise<void>;
 
   logs: EventLogs[];
 };
@@ -52,35 +39,31 @@ export const TokenProvider = ({ children }: TokenProps) => {
 
   const [tokenSelected, selectToken] = useState<ContextType['tokenSelected']>();
   const [allowance, setAllowance] = useState<ContextType['allowance']>('0');
-
+  const [targetAddress, setTargetAddress] = useState<Address>();
   const [logs, setLogs] = useState<ContextType['logs']>([]);
 
-  const [targetAddress, setTargetAddress] = useState<Address>();
-  const { address, chain, chainId } = useAccount();
-
+  const { address, chain } = useAccount();
   const customClient = useCustomClient();
-  const setNotification = useSetNotification();
+  const notificateTxState = useNotificateTxState();
 
   const loadAllowance = useCallback(
     async (token: TokenData, _targetAddress?: Address) => {
       setAllowance('0'); // reset allowance
 
-      if (!address || !chainId || (!targetAddress && !_targetAddress)) return;
+      if (!address || !chain || (!targetAddress && !_targetAddress)) return;
 
-      try {
-        const result = await customClient.publicClient.readContract({
-          address: token.address,
-          abi: WONDER_TOKEN_ABI,
-          functionName: 'allowance',
-          args: [address, targetAddress ?? (_targetAddress || '0x')],
-        });
+      const result = await getAllowance({
+        tokenAddress: token.address,
+        address,
+        targetAddress: targetAddress || _targetAddress || '0x',
+        publicClient: customClient.publicClient,
+      });
 
-        setAllowance(result.toString());
-      } catch (error) {
-        console.error(error);
-      }
+      if (result === 'undefined') throw new Error('Load allowance result is undefined');
+
+      setAllowance(result?.toString() || '0');
     },
-    [address, targetAddress, chainId, customClient],
+    [address, targetAddress, chain, customClient],
   );
 
   const handleSelectToken = (token: TokenData) => {
@@ -103,168 +86,134 @@ export const TokenProvider = ({ children }: TokenProps) => {
     [loadAllowance, targetAddress, tokenSelected],
   );
 
-  const writeContractWithNotifications = async (
-    simulateContract: () => ReturnType<typeof customClient.publicClient.simulateContract>,
-    successCallback: () => void,
-    errorMessage: string,
-  ) => {
-    if (!address || !chainId || !tokenSelected) return;
+  const approveTransaction = async (amount: string) => {
+    if (!address || !chain || !tokenSelected) return;
+    if (!targetAddress) throw new Error('Target address is not set');
 
     try {
-      const { request } = await simulateContract();
-
-      const hash = await customClient.walletClient?.writeContract({
-        ...request,
-        account: address, // override account to avoid ts error
+      const hash = await approve({
+        address,
+        tokenAddress: tokenSelected.address,
+        targetAddress,
+        amount,
+        chain,
+        walletClient: customClient.walletClient as WalletClient,
+        publicClient: customClient.publicClient,
       });
 
-      // if there is no hash and not error is thrown by viem
       if (!hash) {
-        const uErr = new Error(errorMessage);
+        const uErr = new Error('Tx hash is undefined');
         uErr.name = 'UnknownError';
         throw uErr;
       }
 
-      setNotification({
-        type: 'loading',
-        message: 'Pending Transaction',
-        link: {
-          href: `${chain?.blockExplorers?.default.url}/tx/${hash}`,
-          text: 'See transaction',
-        },
-        timeout: 0,
-      });
+      notificateTxState({ type: 'loading', hash });
 
       await customClient.publicClient.waitForTransactionReceipt({ hash });
 
-      successCallback();
-
-      return hash.toString();
-    } catch (error: unknown) {
-      console.error(error);
-      setNotification({
-        type: 'error',
-        message: `${errorMessage}. Error: ` + (error as GetBlockNumberErrorType)?.name,
-        timeout: 0,
-      });
+      loadAllowance(tokenSelected);
+      notificateTxState({ type: 'success', hash, message: 'Approve transaction success' });
+    } catch (error) {
+      notificateTxState({ type: 'error', error });
     }
   };
 
-  const approve = async (amount: string) => {
+  const transferTransaction = async (amount: string) => {
+    if (!address || !chain || !tokenSelected) return;
     if (!targetAddress) throw new Error('Target address is not set');
 
-    return writeContractWithNotifications(
-      () =>
-        customClient.publicClient.simulateContract({
-          account: address,
-          address: tokenSelected!.address,
-          abi: WONDER_TOKEN_ABI,
-          functionName: 'approve',
-          chain: chain,
-          args: [targetAddress!, BigInt(amount)],
-        }),
-      () => {
-        setAllowance(amount);
-      },
-      'Approve transaction failed',
-    );
+    try {
+      const hash = await transfer({
+        address,
+        tokenAddress: tokenSelected.address,
+        targetAddress,
+        amount,
+        chain,
+        walletClient: customClient.walletClient as WalletClient,
+        publicClient: customClient.publicClient,
+      });
+
+      if (!hash) {
+        const uErr = new Error('Tx hash is undefined');
+        uErr.name = 'UnknownError';
+        throw uErr;
+      }
+
+      notificateTxState({ type: 'loading', hash });
+
+      await customClient.publicClient.waitForTransactionReceipt({ hash });
+
+      loadBalance();
+      notificateTxState({ type: 'success', hash, message: 'Transfer transaction success' });
+    } catch (error) {
+      notificateTxState({ type: 'error', error });
+    }
   };
 
-  const transfer = async (amount: string) => {
-    if (!targetAddress) throw new Error('Target address is not set');
+  const mintTransaction = async (amount: string) => {
+    if (!address || !chain || !tokenSelected) return;
 
-    return writeContractWithNotifications(
-      () =>
-        customClient.publicClient.simulateContract({
-          account: address,
-          address: tokenSelected!.address,
-          abi: WONDER_TOKEN_ABI,
-          functionName: 'transfer',
-          chain: chain,
-          args: [targetAddress!, BigInt(amount)],
-        }),
-      () => {
-        loadBalance();
-      },
-      'Transfer transaction failed',
-    );
-  };
+    try {
+      const hash = await mint({
+        address,
+        tokenAddress: tokenSelected.address,
+        targetAddress: address,
+        amount,
+        chain,
+        walletClient: customClient.walletClient as WalletClient,
+        publicClient: customClient.publicClient,
+      });
 
-  const mint = async (amount: string) => {
-    return writeContractWithNotifications(
-      () =>
-        customClient.publicClient.simulateContract({
-          account: address,
-          address: tokenSelected!.address,
-          abi: WONDER_TOKEN_ABI,
-          functionName: 'mint',
-          chain: chain,
-          args: [address!, BigInt(amount)],
-        }),
-      () => {
-        loadBalance();
-      },
-      'Mint transaction failed',
-    );
+      if (!hash) {
+        const uErr = new Error('Tx hash is undefined');
+        uErr.name = 'UnknownError';
+        throw uErr;
+      }
+
+      notificateTxState({ type: 'loading', hash });
+
+      await customClient.publicClient.waitForTransactionReceipt({ hash });
+
+      loadBalance();
+      notificateTxState({ type: 'success', hash, message: 'Mint transaction success' });
+    } catch (error) {
+      notificateTxState({ type: 'error', error });
+    }
   };
 
   const loadTransferAndApprovalLogs = useCallback(async () => {
     if (!tokenSelected || !address) return;
 
-    const transferLogs = await customClient.publicClient.getLogs({
-      address: tokenSelected.address,
-      event: WONDER_TOKEN_EVENT_TRANSFER_ABI,
-      args: { from: address },
-      fromBlock: 'earliest',
-      toBlock: 'latest',
+    const logs = await getTransferAndApprovalLogs({
+      tokens: tokenList.map((token) => token.tokenData),
+      address,
+      publicClient: customClient.publicClient,
     });
 
-    const approvalLogs = await customClient.publicClient.getLogs({
-      address: tokenSelected.address,
-      event: WONDER_TOKEN_EVENT_APPROVAL_ABI,
-      args: { owner: address },
-      fromBlock: 'earliest',
-      toBlock: 'latest',
-    });
+    if (!logs) throw new Error('Load logs failed');
 
-    const tmpLogs = [...transferLogs, ...approvalLogs];
+    setLogs(logs);
+  }, [address, customClient.publicClient, tokenList, tokenSelected]);
 
-    const sortedLogs = tmpLogs.sort((a, b) => {
-      if (a.blockNumber && b.blockNumber) {
-        return Number(b.blockNumber) - Number(a.blockNumber);
-      }
-      return 0;
-    });
-
-    setLogs(sortedLogs as unknown as EventLogs[]);
-  }, [address, customClient.publicClient, tokenSelected]);
-
+  // set default token when loaded
   useEffect(() => {
     defaultToken && selectToken(defaultToken.tokenData);
   }, [defaultToken]);
 
+  // load and watch for new logs
   useEffect(() => {
     if (!tokenSelected || !address) return;
 
-    const unwatchTransferEvents = customClient.publicClient.watchContractEvent({
-      address: tokenSelected?.address,
-      abi: WONDER_TOKEN_ABI,
-      eventName: 'Transfer',
-      onLogs: () => loadTransferAndApprovalLogs(),
-    });
-
-    const unwatchApprovalEvents = customClient.publicClient.watchContractEvent({
-      address: tokenSelected?.address,
-      abi: WONDER_TOKEN_ABI,
-      eventName: 'Approval',
-      onLogs: () => loadTransferAndApprovalLogs(),
-    });
+    const unwatch = watchTransferAndApprovalLogs(
+      tokenSelected.address,
+      loadTransferAndApprovalLogs,
+      customClient.publicClient,
+    );
 
     loadTransferAndApprovalLogs();
 
     return () => {
-      unwatchTransferEvents();
-      unwatchApprovalEvents();
+      unwatch();
     };
   }, [customClient.publicClient, tokenSelected, address, loadTransferAndApprovalLogs]);
 
@@ -275,9 +224,9 @@ export const TokenProvider = ({ children }: TokenProps) => {
         allowance,
         selectToken: handleSelectToken,
         setTargetAddress: handleSetTargetAddress,
-        approve,
-        transfer,
-        mint,
+        approve: approveTransaction,
+        transfer: transferTransaction,
+        mint: mintTransaction,
         logs,
       }}
     >

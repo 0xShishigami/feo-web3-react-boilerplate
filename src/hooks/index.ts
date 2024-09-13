@@ -6,3 +6,4 @@ export * from './useToken';
 export * from './useTxStatus';
 export * from './useCustomClient';
 export * from './useNotification';
+export * from './useNotificateTxState';

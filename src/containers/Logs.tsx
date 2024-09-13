@@ -17,6 +17,7 @@ export const Logs = () => {
     return {
       id: log.blockNumber?.toString(),
       eventName: log.eventName,
+      token: log.tokenData.name,
       value: formattedValue,
       target: truncatedTarget,
       blockNumber: log.blockNumber?.toString(),
@@ -25,6 +26,7 @@ export const Logs = () => {
 
   const columns = [
     { field: 'eventName', headerName: 'Event' },
+    { field: 'token', headerName: 'Token' },
     { field: 'value', headerName: 'Value' },
     { field: 'target', headerName: 'Target', width: 180 },
     { field: 'blockNumber', headerName: 'Block number', width: 120 },
