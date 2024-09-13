@@ -31,6 +31,9 @@ describe('Allowance', function () {
     cy.get('@targetAddress').get('.MuiInputBase-root').should('not.have.class', 'Mui-error');
 
     cy.get('@approveButton').should('be.disabled');
+
+    cy.fillInput('@targetAddress', transactionData.targetAddress);
+    cy.get('@approveButton').should('be.not.disabled');
   });
 
   it('should validate amount', function () {
