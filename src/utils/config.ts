@@ -8,7 +8,7 @@ import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import { alchemyUrls, supportedChains } from '~/data';
 import { getConfig } from '../config';
 
-const { PROJECT_ID, TEST_MODE } = getConfig();
+const { PROJECT_ID, TEST_MODE, USER_TEST_ADDRESS } = getConfig();
 
 const getWallets = () => {
   if (PROJECT_ID) {
@@ -48,9 +48,6 @@ const defaultConfig = createConfig({
   batch: { multicall: true },
   connectors,
 });
-
-// Random test address
-export const USER_TEST_ADDRESS = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
 
 const testConfig = createConfig({
   chains: [wagmiChains.sepolia],

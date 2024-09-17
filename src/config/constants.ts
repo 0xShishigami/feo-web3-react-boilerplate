@@ -1,7 +1,8 @@
 import { Constants } from '~/types';
 
 const constants: Constants = {
-  // Put your project constants here
+  // Random test address
+  USER_TEST_ADDRESS: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
 };
 
 export const getConstants = (): Constants => {
