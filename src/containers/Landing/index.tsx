@@ -6,7 +6,7 @@ import { DISCLAIMER_HEIGHT, SURROUND_HEIGHT } from '~/utils';
 
 export const Landing = () => {
   return (
-    <Layout>
+    <Layout data-testid='landing'>
       <Notification />
       <Container>
         <Balance />

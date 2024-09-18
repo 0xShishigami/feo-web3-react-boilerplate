@@ -15,7 +15,7 @@ export const Balance = () => {
           data-testid={`balance-${t.tokenData.name}`}
         >
           <Typography variant='h6'>{t.tokenData.name}</Typography>
-          <Typography variant='body1'>Balance: {formatUnits(BigInt(t.balance), t.tokenData.decimals)}</Typography>
+          <Typography variant='h4'>{formatUnits(BigInt(t.balance), t.tokenData.decimals)}</Typography>
         </Box>
       ))}
     </Card>

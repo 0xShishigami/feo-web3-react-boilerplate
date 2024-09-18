@@ -1,25 +1,32 @@
-import { tabs, TOKEN_LIST } from '../support/constants';
+import { BALANCE, tabs, TOKEN_LIST } from '../support/constants';
 
 describe('App interaction', () => {
   beforeEach(() => {
     cy.visit('/');
   });
 
-  it('the page loads', () => {
-    cy.contains(/Wonderland/i).should('exist');
+  it('render the landing', () => {
+    cy.getByTestId('landing').should('exist');
   });
 
   it('connect wallet', () => {
     cy.connectWallet();
   });
 
-  it('render balance', () => {
+  it('render empty balance', () => {
     cy.getByTestId('balance').should('exist');
-
     TOKEN_LIST.forEach((token) => {
       cy.getByTestId(`balance-${token.name}`).should('exist');
       cy.getByTestId(`balance-${token.name}`).should('contain', token.name);
-      cy.getByTestId(`balance-${token.name}`).should('contain', 'Balance:');
+    });
+  });
+
+  it('render balance', () => {
+    cy.interceptLoadTokenBalance();
+    cy.connectWallet();
+
+    TOKEN_LIST.forEach((token) => {
+      cy.getByTestId(`balance-${token.name}`).should('contain', BALANCE);
     });
   });
 
