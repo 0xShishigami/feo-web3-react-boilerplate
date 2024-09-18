@@ -23,7 +23,6 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:e2e": "pnpm cypress run",
-    "test:e2e:headed": "pnpm run test:e2e --headed --no-exit",
     "test:unit": "jest",
     "test": "pnpm run test:unit && pnpm run test:e2e"
   },
