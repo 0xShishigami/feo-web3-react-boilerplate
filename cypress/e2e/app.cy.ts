@@ -2,21 +2,18 @@ import { tabs, TOKEN_LIST } from '../support/constants';
 
 describe('App interaction', () => {
   beforeEach(() => {
-    // cy.interceptAllResquests();
+    cy.visit('/');
   });
 
   it('the page loads', () => {
-    cy.visit('/');
     cy.contains(/Wonderland/i).should('exist');
   });
 
   it('connect wallet', () => {
-    cy.visit('/');
     cy.connectWallet();
   });
 
   it('render balance', () => {
-    cy.visit('/');
     cy.getByTestId('balance').should('exist');
 
     TOKEN_LIST.forEach((token) => {
@@ -27,7 +24,6 @@ describe('App interaction', () => {
   });
 
   it('render function tabs', () => {
-    cy.visit('/');
     cy.getByTestId('functions-tab').should('exist');
 
     tabs.forEach((tab) => {
@@ -37,7 +33,6 @@ describe('App interaction', () => {
   });
 
   it('render transaction logs', () => {
-    cy.visit('/');
     cy.getByTestId('logs').should('exist');
   });
 });
