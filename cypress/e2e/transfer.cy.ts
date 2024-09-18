@@ -5,7 +5,6 @@ describe('Transfer', function () {
     cy.visit('/');
     cy.interceptLoadTokenBalance();
     cy.connectWallet();
-    cy.wait(1000); // wait tokens to be loaded
 
     cy.getByTestId(`tab-item-Transfer`).click();
 
