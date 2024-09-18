@@ -52,9 +52,14 @@ export const Allowance = () => {
           label='Select Token'
           onChange={(e) => handleChangeToken(e.target.value)}
           size='small'
+          data-testid='select-token'
         >
           {tokenList.map((t) => (
-            <MenuItem key={`${t.tokenData.chainId}-${t.tokenData.address}`} value={t.tokenData.name}>
+            <MenuItem
+              key={`${t.tokenData.chainId}-${t.tokenData.address}`}
+              value={t.tokenData.name}
+              data-testid={`${t.tokenData.name}-token`}
+            >
               {t.tokenData.name}
             </MenuItem>
           ))}
@@ -68,6 +73,7 @@ export const Allowance = () => {
           onChange={(e) => handleChangeInputAddress(e.target.value)}
           error={!!inputAddress && !isValidAddress}
           size='small'
+          data-testid='target-address'
         />
       </FormControl>
 
@@ -82,11 +88,17 @@ export const Allowance = () => {
           onChange={(e) => setAmount(e.target.value)}
           type='number'
           size='small'
+          data-testid='amount'
         />
       </FormControl>
 
       <FormControl fullWidth margin='dense'>
-        <Button onClick={handleApprove} disabled={!amount || !inputAddress} variant='outlined'>
+        <Button
+          onClick={handleApprove}
+          disabled={!amount || !inputAddress || !isValidAddress}
+          variant='outlined'
+          data-testid='approve-button'
+        >
           Approve
         </Button>
       </FormControl>

@@ -51,7 +51,7 @@ export const Transfer = () => {
   };
 
   const isValidAddress = useMemo(() => isAddress(inputAddress), [inputAddress]);
-  const isBalanceEnough = tokenSelectedBalance && parsedAmount <= tokenSelectedBalance;
+  const isBalanceEnough = tokenSelectedBalance && BigInt(parsedAmount) <= BigInt(tokenSelectedBalance);
   const isTransferDisabled = !amount || parsedAmount == '0' || !inputAddress || !isValidAddress || !isBalanceEnough;
 
   return (
@@ -65,9 +65,14 @@ export const Transfer = () => {
           label='Select Token'
           onChange={(e) => handleChangeToken(e.target.value)}
           size='small'
+          data-testid='select-token'
         >
           {tokenList.map((t) => (
-            <MenuItem key={`${t.tokenData.chainId}-${t.tokenData.address}`} value={t.tokenData.name}>
+            <MenuItem
+              key={`${t.tokenData.chainId}-${t.tokenData.address}`}
+              value={t.tokenData.name}
+              data-testid={`${t.tokenData.name}-token`}
+            >
               {t.tokenData.name}
             </MenuItem>
           ))}
@@ -81,6 +86,7 @@ export const Transfer = () => {
           onChange={(e) => handleChangeInputAddress(e.target.value)}
           error={!!inputAddress && !isValidAddress}
           size='small'
+          data-testid='target-address'
         />
       </FormControl>
 
@@ -93,11 +99,12 @@ export const Transfer = () => {
           size='small'
           error={!isBalanceEnough}
           helperText={isBalanceEnough ? '' : 'Insufficient balance'}
+          data-testid='amount'
         />
       </FormControl>
 
       <FormControl fullWidth margin='dense'>
-        <Button onClick={handleTransfer} disabled={isTransferDisabled} variant='outlined'>
+        <Button onClick={handleTransfer} disabled={isTransferDisabled} variant='outlined' data-testid='transfer-button'>
           Transfer
         </Button>
       </FormControl>

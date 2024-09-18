@@ -33,7 +33,7 @@ export const Logs = () => {
   ];
 
   return (
-    <LogsCard>
+    <LogsCard data-testid='logs'>
       <Typography variant='h4'>Transaction Logs</Typography>
       <DataGrid
         rows={rows}

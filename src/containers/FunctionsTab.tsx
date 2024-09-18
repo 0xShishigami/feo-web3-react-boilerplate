@@ -48,14 +48,20 @@ export const FunctionsTab = ({ tabs }: FunctionsTabProps) => {
   };
 
   return (
-    <TabCard>
+    <TabCard data-testid='functions-tab'>
       <StyledTabs value={value} onChange={handleChange} aria-label='functions tabs' centered>
         {tabs.map((tab, index) => (
-          <Tab key={tab.label} label={tab.label} disableRipple {...a11yProps(index)} />
+          <Tab
+            key={tab.label}
+            label={tab.label}
+            disableRipple
+            data-testid={`tab-item-${tab.label}`}
+            {...a11yProps(index)}
+          />
         ))}
       </StyledTabs>
       {tabs.map((tab, index) => (
-        <CustomTabPanel key={tab.label} value={value} index={index}>
+        <CustomTabPanel key={tab.label} value={value} index={index} data-testid={`tab-panel-${tab.label}`}>
           {tab.component}
         </CustomTabPanel>
       ))}
